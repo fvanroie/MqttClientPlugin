@@ -6,15 +6,15 @@
 
 ## About
 
-MqttPlugin allow you to use data from an MQTT broker in [Rainmeter](http://www.rainmeter.net).
-You can subscribe to multiple topics and use the value in your meters.
+MqttPlugin allows you to use data from an MQTT broker within [Rainmeter](http://www.rainmeter.net).
+You can subscribe to multiple topics and use their values in your meters.
 
-Publishing to topics is not yet supported!
+Publishing messages to topics is not yet supported!
 
 
 ## Components
 
-This project consists of 3 parts:
+This project consists of 3 parts or folders:
 
 - API : The Rainmeter API files as published in the [Rainmeter Plugin SDK][1]
 - M2Mqtt : [MQTT Client Library for .Net][2]
