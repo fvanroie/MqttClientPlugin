@@ -50,4 +50,4 @@ Text="mqttServer: %1#CRLF#mqttTopic1: %2#CRLF#mqttTopic2: %3"
 
 ## Result
 
-![Image of Hello World example](https://raw.githubusercontent.com/fvanroie/MqttPlugin/master/examples/Hello%20World/helloworld.png
+![Image of Hello World example](https://raw.githubusercontent.com/fvanroie/MqttPlugin/master/examples/Hello%20World/helloworld.png)
