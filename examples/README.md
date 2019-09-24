@@ -6,7 +6,7 @@
 
 ## Server
 
-First define your server IP ot hostname. Optionally include the username and password:
+First define your server IP or hostname. Optionally include the username and password:
 
 ```
 [mqttServer]
