@@ -17,7 +17,7 @@ Server=192.168.1.2
 
 ## Topics
 
-Then you can create multiple subscribe topics. Each topics needs to reference the server using the ParentName parameter:
+Then you can create multiple subscribe topics. Each topic needs to reference the server using the ParentName parameter:
 
 ```
 [mqttTopic1]
