@@ -4,6 +4,7 @@
 .vs/
 M2Mqtt/.vs/
 MqttPlugin/.vs/
+[Rr]eleases/
 
 # User-specific files
 *.suo
