@@ -1,2 +1,3 @@
-# MqttPlugin
-Rainmeter MQTT Plugin
+Rainmeter Mqtt Plugin
+
+> Work in Progress !!
