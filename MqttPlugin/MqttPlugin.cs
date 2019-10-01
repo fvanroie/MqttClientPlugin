@@ -90,6 +90,9 @@ namespace MqttPlugin
 {
     internal class Measure
     {
+        public string inputStr; //The string returned in GetString is stored here
+        public IntPtr buffer; //Prevent marshalAs from causing memory leaks by clearing this before assigning
+
         internal virtual void Dispose()
         {
         }
@@ -109,7 +112,10 @@ namespace MqttPlugin
         internal virtual String GetString() {
             return "";
         }
-
+        internal virtual void ExecuteBang(String args) {
+        }
+        internal virtual void Publish(String topic, String value, byte qos = 0, bool retain = false) {
+        }
     }
 
     internal class ParentMeasure : Measure
@@ -121,7 +127,7 @@ namespace MqttPlugin
         internal IntPtr Skin;
 
         internal String Server;
-        internal short Port;
+        internal ushort Port;
         internal String Username;
         internal String Password;
         internal String ClientId;
@@ -142,6 +148,7 @@ namespace MqttPlugin
 
         internal override void Dispose()
         {
+            Client.Disconnect();
             ParentMeasures.Remove(this);
         }
 
@@ -163,12 +170,13 @@ namespace MqttPlugin
             Skin = api.GetSkin();
 
             Server = api.ReadString("Server", "");
+            Port = (ushort)api.ReadInt("Port", 1883);
             ClientId = api.ReadString("ClientId", Guid.NewGuid().ToString());
             Username = api.ReadString("Username", "");
             Password = api.ReadString("Password", "");
-
+            
             try {
-                Client = new MqttClient(Server);
+                Client = new MqttClient(Server,Port,false,null,null,MqttSslProtocols.None);
             }
             catch {
                 Rainmeter.Log(API.LogType.Error, "Failed to instantiate MQTT client");
@@ -244,6 +252,15 @@ namespace MqttPlugin
             Client.Subscribe(topics, qosLevels);
         }
 
+        internal override void Publish(String topic, String value, byte qos=0, bool retain=false) {
+            Client.Publish(topic, Encoding.UTF8.GetBytes(value), qos, retain);
+            Rainmeter.Log(API.LogType.Debug, "Publish "+topic);
+        }
+
+        internal override void ExecuteBang(String args) {
+            Client.Publish(Topic, Encoding.UTF8.GetBytes(args), 0, false);
+        }
+
         internal override double Update()
         {
             Rainmeter.Log(API.LogType.Debug, "Update " + Topic);
@@ -279,7 +296,7 @@ namespace MqttPlugin
 
         internal double GetValue()
         {
-            Rainmeter.Log(API.LogType.Debug, "GetValue");
+            //Rainmeter.Log(API.LogType.Debug, "GetValue");
             return 0.0;
         }
     }
@@ -316,6 +333,12 @@ namespace MqttPlugin
             }
         }
 
+        internal override void ExecuteBang(String args) {
+            if (ParentMeasure != null) {
+                ParentMeasure.Publish(Topic, args);
+            }
+        }
+
         internal override double Update()
         {
             if (ParentMeasure != null)
@@ -332,6 +355,12 @@ namespace MqttPlugin
 
             return "";
         }
+        internal override void Publish(String topic, String value, byte qos = 0, bool retain = false) {
+            if (ParentMeasure != null) {
+                ParentMeasure.Publish(topic, value, qos, retain);
+            }
+        }
+
 
     }
 
@@ -395,5 +424,37 @@ namespace MqttPlugin
 
             return StringBuffer;
         }
+
+        [DllExport]
+        public static void ExecuteBang(IntPtr data, [MarshalAs(UnmanagedType.LPWStr)]String args)
+        {
+            Measure measure = (Measure)GCHandle.FromIntPtr(data).Target;
+            measure.ExecuteBang(args);
+        }
+
+
+        [DllExport]
+        public static IntPtr Publish(IntPtr data, int argc,
+        [MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.LPWStr, SizeParamIndex = 1)] string[] argv) {
+            Measure measure = (Measure)GCHandle.FromIntPtr(data).Target;
+            if (measure.buffer != IntPtr.Zero) {
+                Marshal.FreeHGlobal(measure.buffer);
+                measure.buffer = IntPtr.Zero;
+            }
+
+            //If we are given one or more arguments convert to uppercase the first one
+            if (argc == 2) {
+                measure.Publish(argv[0], argv[1]);
+                measure.buffer = Marshal.StringToHGlobalUni("Pub");
+            }
+            //If we are given no arguments  convert to uppercase the string we recived with the input option
+            else {
+                measure.Publish("atopic", "avalue");
+                measure.buffer = Marshal.StringToHGlobalUni("Arg count must be 2");
+            }
+
+            return Marshal.StringToHGlobalUni("");
+        }
+
     }
 }
