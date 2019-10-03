@@ -1,11 +1,11 @@
 ﻿using System.Reflection;
 using System.Runtime.CompilerServices;
 
-[assembly: AssemblyCopyright("© 2014 - Birunthan Mohanathas")]
-[assembly: AssemblyVersion("1.0.0.0")]
+[assembly: AssemblyCopyright("© 2019 - NetwiZe.be")]
+[assembly: AssemblyVersion("0.0.2.1")]
 #if X64
-[assembly: AssemblyInformationalVersion("3.0.2.2161 (64-bit)")]
+[assembly: AssemblyInformationalVersion("0.0.2.0001 (64-bit)")]
 #else
-[assembly: AssemblyInformationalVersion("3.0.2.2161 (32-bit)")]
+[assembly: AssemblyInformationalVersion("0.0.2.0001 (32-bit)")]
 #endif
 [assembly: AssemblyProduct("Rainmeter")]
