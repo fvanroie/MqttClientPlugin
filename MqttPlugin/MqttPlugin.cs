@@ -92,6 +92,7 @@ namespace MqttPlugin
     {
         public string inputStr; //The string returned in GetString is stored here
         public IntPtr buffer; //Prevent marshalAs from causing memory leaks by clearing this before assigning
+        public bool IsConnected;
 
         internal virtual void Dispose()
         {
@@ -118,8 +119,7 @@ namespace MqttPlugin
         }
     }
 
-    internal class ParentMeasure : Measure
-    {
+    internal class ParentMeasure : Measure {
         // This list of all parent measures is used by the child measures to find their parent.
         internal static List<ParentMeasure> ParentMeasures = new List<ParentMeasure>();
 
@@ -132,60 +132,54 @@ namespace MqttPlugin
         internal String Password;
         internal String ClientId;
 
-        MqttClient Client;
-        Rainmeter.API Rainmeter { get; }
+        internal MqttClient Client { get; }
+        public bool IsConnected => Client.IsConnected;
+        Rainmeter.API Rainmeter { get; set;  }
+
         // All Topics of the Parent and Child Measures
         Hashtable Topics = new Hashtable();
         Hashtable Qos = new Hashtable();
+
         // The Topic of the Parent Measure
         String Topic;
 
-        internal ParentMeasure(Rainmeter.API rm)
-        {
-            ParentMeasures.Add(this);
-            Rainmeter = rm;
-        }
-
-        internal override void Dispose()
-        {
-            Client.Disconnect();
-            ParentMeasures.Remove(this);
-        }
-
-        internal override void Reload(Rainmeter.API api, ref double maxValue)
-        {
-            Topic = api.ReadString("Topic", "defaulttopic");
-
+        internal ParentMeasure(Rainmeter.API api) {
             if (Client?.IsConnected == true) {
-                Rainmeter.Log(API.LogType.Debug, "Disconnecting");
                 Client.Disconnect();
+                api.Log(API.LogType.Notice, "Removing existing connection to " + Server + ":" + Port);
+                Client = null;
+                Hashtable Topics = new Hashtable();
+                Hashtable Qos = new Hashtable();
             }
-            Rainmeter.Log(API.LogType.Debug, "Disconnected");
 
-            Rainmeter.Log(API.LogType.Debug, "Reloading");
-            base.Reload(api, ref maxValue);
-            Rainmeter.Log(API.LogType.Debug, "Reloaded");
-
+            ParentMeasures.Add(this);
+            Rainmeter = api;
+            Topic = api.ReadString("Topic", "defaulttopic");
             Name = api.GetMeasureName();
             Skin = api.GetSkin();
-
             Server = api.ReadString("Server", "");
-            Port = (ushort)api.ReadInt("Port", 1883);
+            int port = api.ReadInt("Port", 1883);
             ClientId = api.ReadString("ClientId", Guid.NewGuid().ToString());
             Username = api.ReadString("Username", "");
             Password = api.ReadString("Password", "");
+
+            Port = 1883;
+            if (port <= 0 || port > 65535) {
+                api.Log(API.LogType.Warning, "Illegal MQTT port " + port.ToString() + ". Using default port 1883.");
+            } else {
+                Port = (ushort)port;
+            }
             
             try {
-                Client = new MqttClient(Server,Port,false,null,null,MqttSslProtocols.None);
+                Client = new MqttClient(Server, Port, false, null, null, MqttSslProtocols.None);
+                // api.Log(API.LogType.Debug, "Created new MQTT client instance"); // OK
             }
             catch {
-                Rainmeter.Log(API.LogType.Error, "Failed to instantiate MQTT client");
-                return;
+                api.Log(API.LogType.Error, "Failed to instantiate MQTT client");
             }
 
             if (Client == null) {
-                Rainmeter.Log(API.LogType.Error, "MQTT Client is null");
-                return;
+                api.Log(API.LogType.Error, "MQTT Client is null");
             }
 
             // Setup callback routines
@@ -193,11 +187,24 @@ namespace MqttPlugin
             Client.MqttMsgSubscribed += client_MqttMsgSubscribed;
             Client.MqttMsgUnsubscribed += client_MqttMsgUnsubscribed;
             Client.MqttMsgPublished += client_MqttMsgPublished;
+            Client.ConnectionClosed += (sender, args) => {
+                Rainmeter.Log(API.LogType.Warning, "Connection was Closed."); // OK
 
-            Client.Connect(ClientId, Username, Password);
+                //Rainmeter.Log(API.LogType.Warning, "Connection was Closed. Reconnecting..."); // OK
+                // Reconnect();
+            };
+
+            try {
+                Client.Connect(ClientId, Username, Password, false, 60);
+            }
+            catch {
+                api.Log(API.LogType.Error, "Exception while connecting to " + Server + ":" + Port);
+            }
+
             if (Client.IsConnected == false) {
-                Rainmeter.Log(API.LogType.Debug, "Client failed to connect");
-                return;
+                api.Log(API.LogType.Warning, "Client failed to connect to " + Server + ":" + Port);     // OK
+            } else {
+                api.Log(API.LogType.Notice, "MQTT Client is connected to " + Server + ":" + Port);      // OK
             }
 
             // string[] topic = { "sensor/temp", "sensor/humidity" };
@@ -207,13 +214,17 @@ namespace MqttPlugin
             // Client.Publish("sensor/temp", Encoding.UTF8.GetBytes("6"));
 
             void client_MqttMsgPublished(object sender, MqttMsgPublishedEventArgs e) {
-                Rainmeter.Log(API.LogType.Debug, "Publish Callback Routine");
+                if (e.IsPublished) {
+                    Rainmeter.Log(API.LogType.Notice, "Published message ID " + e.MessageId);
+                } else {
+                    Rainmeter.Log(API.LogType.Warning, "Failed to Publish message ID " + e.MessageId);
+                }
             }
 
             void client_MqttMsgPublishReceived(object sender, MqttMsgPublishEventArgs e) {
                 String msg = System.Text.Encoding.Default.GetString(e.Message);
-                
-                Rainmeter.Log(API.LogType.Debug, "Received topic " + e.Topic + " => " + msg);
+
+                Rainmeter.Log(API.LogType.Debug, "Received topic " + e.Topic + " => " + msg); // OK
                 //this.topic = topic;
                 //this.message = message;
                 //this.dupFlag = dupFlag;
@@ -230,13 +241,47 @@ namespace MqttPlugin
             }
 
             void client_MqttMsgUnsubscribed(object sender, MqttMsgUnsubscribedEventArgs e) {
-                Rainmeter.Log(API.LogType.Debug, "Unsubscribe Callback Routine");
+                Rainmeter.Log(API.LogType.Debug, "Unsubscribed to message ID " + e.MessageId);
             }
 
             void client_MqttMsgSubscribed(object sender, MqttMsgSubscribedEventArgs e) {
-                Rainmeter.Log(API.LogType.Debug, "Subscribe Callback Routine");
+                Rainmeter.Log(API.LogType.Debug, "Subscribed to message ID " + e.MessageId);
+            }
+        }
+
+        internal void Reconnect() {
+            try {
+                Client.Connect(ClientId, Username, Password, false, 60);
+            }
+            catch {
+                Rainmeter.Log(API.LogType.Error, "Exception while reconnecting to " + Server + ":" + Port);
             }
 
+            if (Client.IsConnected == false) {
+                Rainmeter.Log(API.LogType.Warning, "Client failed to reconnect to " + Server + ":" + Port);     // OK
+            } else {
+                Rainmeter.Log(API.LogType.Notice, "MQTT Client is reconnected to " + Server + ":" + Port);      // OK
+            }
+        }
+
+        internal override void Dispose() {
+            if (Client != null && Client.IsConnected == true) {
+                try {
+                    Client.Disconnect();
+                }
+                catch {
+                    Rainmeter.Log(API.LogType.Error, "Exception while disposing of " + Server + ":" + Port);
+                }
+            }
+            ParentMeasures.Remove(this);
+        }
+
+        internal override void Reload(Rainmeter.API api, ref double maxValue) {
+            Rainmeter = api;
+
+            // api.Log(API.LogType.Debug, "Reloading");    // OK
+            base.Reload(api, ref maxValue);
+            api.Log(API.LogType.Debug, "Reloaded");     // OK
         }
 
         internal void Subscribe(String topic, byte qos) {
@@ -249,42 +294,55 @@ namespace MqttPlugin
             Qos.Keys.CopyTo(topics, 0);
             Qos.Values.CopyTo(qosLevels, 0);
 
-            Client.Subscribe(topics, qosLevels);
+            if (Client.IsConnected) {
+                Rainmeter.Log(API.LogType.Debug, "Subscibe to topic " + topic);
+                Client.Subscribe(topics, qosLevels);
+            } else {
+                Rainmeter.Log(API.LogType.Debug, "Client is disconnected, can't subscibe to topic " + topic);
+            }
         }
 
         internal override void Publish(String topic, String value, byte qos=0, bool retain=false) {
-            Client.Publish(topic, Encoding.UTF8.GetBytes(value), qos, retain);
-            Rainmeter.Log(API.LogType.Debug, "Publish "+topic);
+            if (Client != null) {
+                if (Client.IsConnected) {
+                    Rainmeter.Log(API.LogType.Debug, "Publish " + topic + " = " + value);
+                    Client.Publish(topic, Encoding.UTF8.GetBytes(value), qos, retain);
+                } else {
+                    Rainmeter.Log(API.LogType.Debug, "Client is disconnected, can't publish to topic " + topic);
+                }
+            }
         }
 
         internal override void ExecuteBang(String args) {
-            Client.Publish(Topic, Encoding.UTF8.GetBytes(args), 0, false);
+            Publish(Topic, args, 0, false);
         }
 
         internal override double Update()
         {
-            Rainmeter.Log(API.LogType.Debug, "Update " + Topic);
-
-            if (!Client.IsConnected) {
-                Client.Connect(ClientId, Username, Password);
+            if (Client != null) {
                 if (Client.IsConnected == false) {
-                    Rainmeter.Log(API.LogType.Debug, "Client failed to reconnect");
+                    Rainmeter.Log(API.LogType.Warning, "Client connection to " + Server + ":" + Port + " lost. Reconnecting...");     // OK
+                    Reconnect();
                 }
-            }
 
-            return GetValue();
+                Rainmeter.Log(API.LogType.Debug, "Update " + Topic);
+                return GetValue();
+
+            } else {
+                return 0.0;
+            }
         }
 
         internal override String GetString(String topic) {
-            if (Topics.ContainsKey(topic)) {
-                Rainmeter.Log(API.LogType.Debug, "GetString " + topic);
-                String value = Topics[topic].ToString();
+            if (Client != null && Client.IsConnected) {
+                if (Topics.ContainsKey(topic)) {
+                    Rainmeter.Log(API.LogType.Debug, "GetString " + topic);
+                    String value = Topics[topic].ToString();
 
-
-
-                return Topics[topic].ToString();
-            } else {
-                Rainmeter.Log(API.LogType.Debug, "GetString " + topic + " not found");
+                    return Topics[topic].ToString();
+                } else {
+                    Rainmeter.Log(API.LogType.Debug, "GetString " + topic + " not found");
+                }
             }
 
             // MeasureType.Major, MeasureType.Minor, and MeasureType.Number are
@@ -306,6 +364,11 @@ namespace MqttPlugin
         private ParentMeasure ParentMeasure = null;
         // The Topic of the Child Measure
         String Topic;
+        Rainmeter.API Rainmeter;
+
+        internal ChildMeasure(Rainmeter.API api) {
+            Rainmeter = api;
+        }
 
         internal override void Reload(Rainmeter.API api, ref double maxValue)
         {
@@ -361,30 +424,31 @@ namespace MqttPlugin
             }
         }
 
-
     }
 
     public static class Plugin
     {
         static IntPtr StringBuffer = IntPtr.Zero;
+        static Rainmeter.API Rainmeter;
 
         [DllExport]
         public static void Initialize(ref IntPtr data, IntPtr rm)
         {
             Rainmeter.API api = new Rainmeter.API(rm);
-
+            Rainmeter = api;
             string parent = api.ReadString("ParentName", "");
+
             Measure measure;
             if (String.IsNullOrEmpty(parent))
             {
-                measure = new ParentMeasure((Rainmeter.API) rm);
-            }
-            else
+                measure = new ParentMeasure(api);
+            } else
             {
-                measure = new ChildMeasure();
+                measure = new ChildMeasure(api);
             }
 
             data = GCHandle.ToIntPtr(GCHandle.Alloc(measure));
+            // Rainmeter.Log(API.LogType.Debug, "Plugin Initialize"); // OK
         }
 
         [DllExport]
@@ -393,24 +457,38 @@ namespace MqttPlugin
             Measure measure = (Measure)GCHandle.FromIntPtr(data).Target;
             measure.Dispose();
             GCHandle.FromIntPtr(data).Free();
+            if (StringBuffer != IntPtr.Zero) {
+                Marshal.FreeHGlobal(StringBuffer);
+                StringBuffer = IntPtr.Zero;
+            }
+            Rainmeter = null;
         }
 
         [DllExport]
         public static void Reload(IntPtr data, IntPtr rm, ref double maxValue)
         {
+            // Rainmeter.Log(API.LogType.Debug, "Plugin Reload 1"); // OK
+
+            Rainmeter.API api = new Rainmeter.API(rm);
+            // api.Log(API.LogType.Debug, "Plugin Reload 2"); // OK
+
             Measure measure = (Measure)GCHandle.FromIntPtr(data).Target;
-            measure.Reload(new Rainmeter.API(rm), ref maxValue);
+            measure.Reload(api, ref maxValue);
         }
 
         [DllExport]
         public static double Update(IntPtr data)
         {
+            // Rainmeter.Log(API.LogType.Debug, "Plugin Update"); // OK
+
             Measure measure = (Measure)GCHandle.FromIntPtr(data).Target;
             return measure.Update();
         }
 
         [DllExport]
         public static IntPtr GetString(IntPtr data) {
+            // Rainmeter.Log(API.LogType.Debug, "Plugin GetString"); // OK
+
             Measure measure = (Measure)GCHandle.FromIntPtr(data).Target;
             if (StringBuffer != IntPtr.Zero) {
                 Marshal.FreeHGlobal(StringBuffer);
@@ -428,6 +506,8 @@ namespace MqttPlugin
         [DllExport]
         public static void ExecuteBang(IntPtr data, [MarshalAs(UnmanagedType.LPWStr)]String args)
         {
+            Rainmeter.Log(API.LogType.Debug, "Plugin Execute Bang");
+
             Measure measure = (Measure)GCHandle.FromIntPtr(data).Target;
             measure.ExecuteBang(args);
         }
@@ -436,6 +516,8 @@ namespace MqttPlugin
         [DllExport]
         public static IntPtr Publish(IntPtr data, int argc,
         [MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.LPWStr, SizeParamIndex = 1)] string[] argv) {
+            // Rainmeter.Log(API.LogType.Debug, "Plugin Publish"); // OK
+
             Measure measure = (Measure)GCHandle.FromIntPtr(data).Target;
             if (measure.buffer != IntPtr.Zero) {
                 Marshal.FreeHGlobal(measure.buffer);
