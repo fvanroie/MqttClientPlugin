@@ -7,38 +7,38 @@
 ## About
 
 MqttPlugin allows you to use data from an MQTT broker within [Rainmeter](http://www.rainmeter.net).
-You can subscribe to multiple topics and use their values in your meters.
-Publishing messages to topics is supported since v0.0.2!
+You can subscribe to multiple topics and use their values in your measures and meters.
+Publishing messages to MQTT topics is also supported.
 
 
 ## Components
 
-This project consists of 3 parts or folders:
+This project consists of 2 folders:
 
 - API : The Rainmeter API files as published in the [Rainmeter Plugin SDK][1]
-- M2Mqtt : [MQTT Client Library for .Net][2]
-- MqttPlugin : The actual glue that binds the Rainmeter API and the Paho MQTT .Net Client.
+- MqttPlugin : The actual glue that binds the Rainmeter API and the MQTTnet Client.
 
 [1]:https://github.com/rainmeter/rainmeter-plugin-sdk
 [2]:https://github.com/eclipse/paho.mqtt.m2mqtt
 
-The MqttPlugin folder is a modified version of the [PluginParentChild example](https://github.com/rainmeter/rainmeter-plugin-sdk/tree/master/C%23/PluginParentChild) from the SDK.
+The MqttPlugin is based on the [PluginParentChild example](https://github.com/rainmeter/rainmeter-plugin-sdk/tree/master/C%23/PluginParentChild) from the SDK.
 
-> You can copy and compile the API and M2Mqtt folders from the original projects if you like.
-
+There is a dependency on 3 NuGet packages: MQTTnet, Newtonsoft.Json and Costura.Fody.
+These are downloaded and included automatically when you open the project for the first time.
 
 ## Compilation
 
 The solution (.sln) file can be built using the free [Visual Studio 2019 Community Edition](https://visualstudio.microsoft.com/vs/community/).
-
+If needed, right-click the solution item and run 'Restore NuGet packages' to install all dependencies.
+Then Build the Solution. 
 
 ## Installation
 
-Copy the DLLs from bin\x86 or bin\x64 into your Rainmeter installation directory:
-- M2Mqtt.Net.dll : Place this library into your `Rainmeter` folder in Program Files where the `rainmeter.exe` is located.
-- MqttPlugin.dll : Copy this plugin into the `Plugins` subfolder of the Rainmeter directory or to `%AppData%\Rainmeter\Rainmeter\Plugins`
+Copy the single MqttPlugin.dll from bin\x86 or bin\x64 into your %appdata%\Rainmeter\Plugins directory.
+Copy the examples folder to Documents\Rainmeter\Skins.
 
+Note: If you installed v0.0.1 or v0.0.2, you can remove M2Mqtt.dll from your Rainmeter directory. And MqttPlugin.dll from your Plugins directory.
 
 ## Usage
 
-See the [examples](tree/master/examples) folder for how to use the Measures.
+See the examples folder for how to use the Measures.
