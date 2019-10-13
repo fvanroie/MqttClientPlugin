@@ -18,14 +18,16 @@
 
 using MQTTnet;
 using MQTTnet.Client;
-using MQTTnet.Client.Connecting;
+//using MQTTnet.Client.Connecting;
 using MQTTnet.Client.Options;
-using MQTTnet.Formatter;
+//using MQTTnet.Formatter;
 using MQTTnet.Protocol;
-using MQTTnet.Client.Subscribing;
-//using MQTTnet.Extensions.ManagedClient;
+//using MQTTnet.Client.Subscribing;
+using MQTTnet.Extensions.ManagedClient;
 using System;
-using System.Threading;
+using System.Text.RegularExpressions;
+using System.Security;
+//using System.Threading;
 using System.Threading.Tasks;
 
 using System.Collections.Generic;
@@ -54,37 +56,37 @@ using Newtonsoft.Json.Linq;
     BackgroundMode=2
     SolidColor=000000
 
-    [mParent]
+    [mServer]
     Measure=Plugin
-    Plugin=ParentChild.dll
-    ValueA=111
-    ValueB=222
-    ValueC=333
-    Type=A
+    Plugin=MqttPlugin.dll
+    Server=mqtthost.local
+    Port=1833
+    Username=myuser
+    Password=mypass
 
-    [mChild1]
+    [mTopic1]
     Measure=Plugin
     Plugin=ParentChild.dll
-    ParentName=mParent
-    Type=B
+    ParentName=mServer
+    Topic=/stat/mything/topic
 
-    [mChild2]
+    [mTopic2]
     Measure=Plugin
     Plugin=ParentChild.dll
-    ParentName=mParent
-    Type=C
+    ParentName=mServer
+    Topic=/stat/otherting/topic
 
     [Text]
     Meter=STRING
-    MeasureName=mParent
-    MeasureName2=mChild1
-    MeasureName3=mChild2
+    MeasureName=mServer
+    MeasureName2=mTopic1
+    MeasureName3=mTopic2
     X=5
     Y=5
     W=200
     H=55
     FontColor=FFFFFF
-    Text="mParent: %1#CRLF#mChild1: %2#CRLF#mChild2: %3"
+    Text="mServer: %1#CRLF#mTopic1: %2#CRLF#mTopic: %3"
 */
 
 namespace MqttPlugin {
@@ -92,7 +94,6 @@ namespace MqttPlugin {
 
         //public string inputStr; //The string returned in GetString is stored here
         public IntPtr buffer; //Prevent marshalAs from causing memory leaks by clearing this before assigning
-        public bool IsConnected;
 
         internal virtual void Dispose() {
         }
@@ -119,30 +120,46 @@ namespace MqttPlugin {
     }
 
     internal class ParentMeasure : Measure {
+        internal Rainmeter.API Rainmeter { get; }
+        internal string Name;
+        internal IntPtr Skin;
+        internal int DebugLevel = 0;
+
+        // MqttClient
+        MqttFactory Factory = new MqttFactory();
+        // IMqttClient MqttClient;
+        IManagedMqttClient MqttClient;
+
         // This list of all parent measures is used by the child measures to find their parent.
         internal static List<ParentMeasure> ParentMeasures = new List<ParentMeasure>();
 
-        internal string Name;
-        internal IntPtr Skin;
-
+        // Server Properties
+        internal String ClientId;
         internal String Server;
         internal ushort Port;
         internal String Username;
-        internal String Password;
-        internal String ClientId;
-        internal String OnConnect;
-        internal String OnReload;
-        internal String OnMessage;
+        internal SecureString Password;
 
-        MqttFactory Factory = new MqttFactory();
-        IMqttClient MqttClient;
+        // Server Measure Bangs
+        internal String[] OnConnectBangs;
+        internal String[] OnDisconnectBangs;
+        internal String[] OnReloadBangs;
+        internal String[] OnMessageBangs;
 
-        Rainmeter.API Rainmeter { get; }
         // All Topics of the Parent and Child Measures
         Hashtable Topics = new Hashtable();
         Hashtable Qos = new Hashtable();
+
+        public bool IsConnected => MqttClient != null ? MqttClient.IsConnected : false;
+
         // The Topic of the Parent Measure
         String Topic;
+
+        internal void Debug(String message, int level) {
+            if (DebugLevel >= level) {
+                Rainmeter.Log(API.LogType.Debug, message);
+            }
+        }
 
         internal ParentMeasure(Rainmeter.API api) {
             ParentMeasures.Add(this);
@@ -152,20 +169,28 @@ namespace MqttPlugin {
 
             Name = api.GetMeasureName();
             Skin = api.GetSkin();
+            DebugLevel = (ushort)api.ReadInt("DebugLevel", 0);
 
             Server = api.ReadString("Server", "localhost");
             Port = (ushort)api.ReadInt("Port", 1833);
             ClientId = api.ReadString("ClientId", Guid.NewGuid().ToString());
             Username = api.ReadString("Username", "");
-            Password = api.ReadString("Password", "");
-            OnConnect = api.ReadString("OnConnect", "");
-            OnReload = api.ReadString("OnReload", "");
-            OnMessage = api.ReadString("OnMessage", "");
+            Password = new SecureString();
+            foreach (char ch in api.ReadString("Password", "")) Password.AppendChar(ch);
+            
+            /* Mqtt Server Bangs */
+            OnConnectBangs = SplitBangs( api.ReadString("OnConnect", "") );
+            OnDisconnectBangs = SplitBangs( api.ReadString("OnConnect", "") );
+            OnReloadBangs = SplitBangs( api.ReadString("OnReload", "") );
+            OnMessageBangs = SplitBangs( api.ReadString("OnMessage", "") );
 
-            MqttClient = Factory.CreateMqttClient();
-            MqttClient.UseConnectedHandler(async e => {
+            // MqttClient = Factory.CreateMqttClient();
+            MqttClient = Factory.CreateManagedMqttClient();
+
+            MqttClient.UseConnectedHandler(e => {
                 Rainmeter.Log(API.LogType.Notice, "Connected to " + Server + " : " + Port);
 
+                /* This is now handled by the Managed MqttClient
                 // Subscribe to all previous topics
                 var message = new MQTTnet.MqttApplicationMessage();
                 foreach (var topic in Topics.Keys) {
@@ -174,12 +199,12 @@ namespace MqttPlugin {
                     Rainmeter.Log(API.LogType.Notice, "==> Subscribed to " + topic);
                     // await MqttClient.SubscribeAsync(new TopicFilterBuilder().WithTopic("my/topic").Build());
                 }
-                
+                */
 //                await Task.Run(() => MqttClient.PublishAsync(message));
 
-                if (OnConnect != "") {
-                    Rainmeter.Log(API.LogType.Debug, "Executing OnConnect Bang " + OnConnect);
-                    API.Execute(Skin, OnConnect);
+                if (OnConnectBangs.Length > 0) {
+                    Rainmeter.Log(API.LogType.Notice, "Executing OnConnect Bangs");
+                    ExecuteBangs(OnConnectBangs);
                 }
 
             });
@@ -189,22 +214,23 @@ namespace MqttPlugin {
                 String topic = e.ApplicationMessage.Topic;
                 String payload = Encoding.UTF8.GetString(e.ApplicationMessage.Payload);
                 try {
-                    Rainmeter.Log(API.LogType.Debug, "### RECEIVED APPLICATION MESSAGE ###");
-                    Rainmeter.Log(API.LogType.Debug, $"+ Topic = {e.ApplicationMessage.Topic}");
-                    Rainmeter.Log(API.LogType.Debug, $"+ Payload = {Encoding.UTF8.GetString(e.ApplicationMessage.Payload)}");
-                    Rainmeter.Log(API.LogType.Debug, $"+ QoS = {e.ApplicationMessage.QualityOfServiceLevel}");
-                    Rainmeter.Log(API.LogType.Debug, $"+ Retain = {e.ApplicationMessage.Retain}");
+                    Debug( "### RECEIVED APPLICATION MESSAGE ###", 3);
+                    Debug( $" >> Topic = {e.ApplicationMessage.Topic}", 4);
+                    Debug( $" >> Payload = {Encoding.UTF8.GetString(e.ApplicationMessage.Payload)}", 4);
+                    Debug( $" >> QoS = {e.ApplicationMessage.QualityOfServiceLevel}", 5);
+                    Debug( $" >> Retain = {e.ApplicationMessage.Retain}", 5);
 
                     if (Topics.Contains(topic)) {
                         Topics[topic] = payload;
+                        Rainmeter.Log(API.LogType.Notice, "Received update for " + topic);
                     } else {
                         Topics.Add(topic, payload);
                         Rainmeter.Log(API.LogType.Warning, "Received payload for unknown topic " + topic);
                     }
 
-                    if (OnMessage != "") {
-                        Rainmeter.Log(API.LogType.Debug, "Executing OnMessage Bang " + OnMessage);
-                        API.Execute(Skin, OnMessage);
+                    if (OnMessageBangs.Length > 0) {
+                        Rainmeter.Log(API.LogType.Notice, "Executing OnMessage Bangs");
+                        ExecuteBangs(OnMessageBangs);
                     }
                 }
                 catch {
@@ -213,19 +239,29 @@ namespace MqttPlugin {
 
             });
 
-            MqttClient.UseDisconnectedHandler(async e => {
+            MqttClient.UseDisconnectedHandler(e => {
+
+                Rainmeter.Log(API.LogType.Error, e.Exception.Message);
+                Rainmeter.Log(API.LogType.Error, e.AuthenticateResult.ReasonString);
+                Rainmeter.Log(API.LogType.Error, e.ClientWasConnected.ToString());
+
                 if (!MqttClient.IsConnected) {
                     Rainmeter.Log(API.LogType.Warning, "Lost previous connection to " + Server + " : " + Port);
                 }
 
-                // await Task.Delay(TimeSpan.FromSeconds(5));
+                if (OnDisconnectBangs.Length > 0) {
+                    Rainmeter.Log(API.LogType.Notice, "Executing OnDisconnect Bangs");
+                    ExecuteBangs(OnDisconnectBangs);
+                }
+
+                /* await Task.Delay(TimeSpan.FromSeconds(5));
 
                 try {
-                    // ConnectAsync(Server, Port, Username, Password, ClientId).Wait();
+                    ConnectAsync(Server, Port, Username, Password, ClientId).Wait();
                 }
                 catch {
-                    // Rainmeter.Log(API.LogType.Warning, "### RECONNECTING FAILED ###");
-                }
+                    Rainmeter.Log(API.LogType.Warning, "### RECONNECTING FAILED ###");
+                }*/
             });
 
             try {
@@ -240,13 +276,63 @@ namespace MqttPlugin {
             }
         }
 
+        internal void ExecuteBangs(String[] bangs) {
+            foreach (String bang in bangs) {
+                Debug( "Executing Bang: " + bang, 2);
+                API.Execute(Skin, bang);
+            }
+        }
+
+        internal String[] SplitBangs(String input) {
+            var result = new List<String>();
+            int level = 0;
+            StringBuilder output = new StringBuilder(input.Length);
+
+            foreach (var character in input) {
+                switch (character) {
+                    case '[':
+                        level++;
+                        break;
+                    case ']':
+                        level--;
+                        if (level == 0) {
+                            result.Add(output.ToString());
+                            Debug( " - Adding new BANG: " + output.ToString(), 5);
+                            output.Clear();
+                        } else if (level < 0) {
+                            level = 0;
+                        }
+                            break;
+                    default:
+                        output.Append(character);
+                        break;
+                }
+            }
+
+            return result.ToArray();
+        }
+
+        String SecureStringToString(SecureString value) {
+            IntPtr valuePtr = IntPtr.Zero;
+            try {
+                valuePtr = Marshal.SecureStringToGlobalAllocUnicode(value);
+                return Marshal.PtrToStringUni(valuePtr);
+            }
+            finally {
+                Marshal.ZeroFreeGlobalAllocUnicode(valuePtr);
+            }
+        }
+
         internal override void Dispose() {
+            Rainmeter.Log(API.LogType.Debug, "Disposing Measure...");
+            DisconnectAsync().Wait();
+            MqttClient.Dispose();
             ParentMeasures.Remove(this);
         }
 
-        private async Task ConnectAsync(String server, ushort port = 1833, String username = "", String password = "", String clientID = null) {
+        private async Task ConnectAsync(String server, ushort port, String username, SecureString password, String clientID = null) {
             if (MqttClient.IsConnected) {
-                Rainmeter.Log(API.LogType.Debug, "Already connected...");
+                Debug( "Already connected...", 1);
                 return;
             }
 
@@ -257,19 +343,25 @@ namespace MqttPlugin {
             var options = new MqttClientOptionsBuilder()
                 .WithClientId(clientID)
                 .WithTcpServer(server, port)
-                .WithCredentials(username, password)
-                .WithCleanSession(false)
+                .WithCredentials(username, SecureStringToString(password))
+                .WithCleanSession(true)    // must be true for Managed Client, easier reconnects
                 .Build();
 
-            Rainmeter.Log(API.LogType.Debug, "Connecting...");
-            await MqttClient.ConnectAsync(options, CancellationToken.None);
-        }
+            var managedClientOptions = new ManagedMqttClientOptionsBuilder()
+                .WithAutoReconnectDelay(TimeSpan.FromSeconds(5))
+                .WithClientOptions(options)
+                .Build();
 
+            Debug( "Connecting...", 1);
+            //await MqttClient.ConnectAsync(options, CancellationToken.None);
+            await MqttClient.StartAsync(managedClientOptions);
+        }
 
         private async Task DisconnectAsync() {
             if (MqttClient.IsConnected) {
-                Rainmeter.Log(API.LogType.Debug, "Disconnecting");
-                await MqttClient.DisconnectAsync();
+                Debug( "Disconnecting", 1);
+                //await MqttClient.DisconnectAsync();
+                await MqttClient.StopAsync();
             }
         }
 
@@ -290,15 +382,12 @@ namespace MqttPlugin {
                 case 0:
                     mqttQos = MQTTnet.Protocol.MqttQualityOfServiceLevel.AtLeastOnce;
                     break;
-
                 case 1:
                     mqttQos = MQTTnet.Protocol.MqttQualityOfServiceLevel.AtMostOnce;
                     break;
-
                 case 2:
                     mqttQos = MQTTnet.Protocol.MqttQualityOfServiceLevel.ExactlyOnce;
                     break;
-
                 default:
                     throw new Exception("Invalid Qos value (0-2).");
             }
@@ -307,47 +396,52 @@ namespace MqttPlugin {
                 throw new Exception("Topic cannot be empty.");
             }
 
-            var result = (await MqttClient.SubscribeAsync(
+            await MqttClient.SubscribeAsync(
                     new TopicFilterBuilder()
                     .WithTopic(topic)
                     .WithQualityOfServiceLevel(mqttQos)
                     .Build()
-                )).Items[0];
+                );
+
+            /*            var result = (await MqttClient.SubscribeAsync(
+                                new TopicFilterBuilder()
+                                .WithTopic(topic)
+                                .WithQualityOfServiceLevel(mqttQos)
+                                .Build()
+                            )).Items[0];
 
 
-            switch (result.ResultCode) {
-                case MqttClientSubscribeResultCode.GrantedQoS0:
-                case MqttClientSubscribeResultCode.GrantedQoS1:
-                case MqttClientSubscribeResultCode.GrantedQoS2:
+                        switch (result.ResultCode) {
+                            case MqttClientSubscribeResultCode.GrantedQoS0:
+                            case MqttClientSubscribeResultCode.GrantedQoS1:
+                            case MqttClientSubscribeResultCode.GrantedQoS2:
 
-                    /*                    MqttClient.UseApplicationMessageReceivedHandler(me =>
-                                        {
-                                            var msg = me.ApplicationMessage;
-                                            var data = Encoding.UTF8.GetString(msg.Payload);
-                                            Rainmeter.Log(API.LogType.Debug, "Subscribed to " + data);
-                                        });
-                                        */
-                    break;
-                default:
-                    throw new Exception(result.ResultCode.ToString());
-            }
-
+                                                //    MqttClient.UseApplicationMessageReceivedHandler(me =>
+                                                  //  {
+                                                  //      var msg = me.ApplicationMessage;
+                                                  //      var data = Encoding.UTF8.GetString(msg.Payload);
+                                                  //      Rainmeter.Log(API.LogType.Debug, "Subscribed to " + data);
+                                                  //  });
+                                break;
+                            default:
+                                throw new Exception(result.ResultCode.ToString());
+                        }
+            */
         }
 
         internal override void Reload(Rainmeter.API api, ref double maxValue) {
             Topic = api.ReadString("Topic", "");
 
-            Rainmeter.Log(API.LogType.Debug, "Reloading");
+            Debug( "Reloading", 1);
             base.Reload(api, ref maxValue);
-            Rainmeter.Log(API.LogType.Debug, "Reloaded");
+            Debug( "Reloaded", 1);
 
-            if (OnReload != "") {
-                Rainmeter.Log(API.LogType.Debug, "Executing OnReload Bang " + OnReload);
-                API.Execute(Skin, OnReload);
+            if (OnReloadBangs.Length > 0) {
+                Rainmeter.Log(API.LogType.Notice, "Executing OnReload Bangs");
+                ExecuteBangs(OnReloadBangs);
             }
 
         }
-
 
         internal void Subscribe(String topic, byte qos) {
             if (!Qos.Contains(topic)) {
@@ -372,18 +466,23 @@ namespace MqttPlugin {
         }
 
         internal override void Publish(String topic, String value, byte qos = 0, bool retain = false) {
-            if (MqttClient.IsConnected) {
+            //if (MqttClient.IsConnected) {
                 Rainmeter.Log(API.LogType.Notice, "Publish message " + topic + " = " + value);
                 try {
                     PublishAsync(topic, value).Wait();
+                }
+                catch (AggregateException e) {
+                    foreach (var ex in e.InnerExceptions) {
+                        Rainmeter.Log(API.LogType.Error, "Publish failed:" + ex);
+                    }
                 }
                 catch (Exception ex) {
                     Rainmeter.Log(API.LogType.Error, "Publish failed:" + ex);
                 }
 
-            } else {
-                Rainmeter.Log(API.LogType.Error, "Publish failed, client is not connected.");
-            }
+            //} else {
+            //    Rainmeter.Log(API.LogType.Error, "Publish failed, client is not connected.");
+            //}
         }
 
         internal override void ExecuteBang(String args) {
@@ -391,34 +490,18 @@ namespace MqttPlugin {
         }
 
         internal override double Update() {
-            Rainmeter.Log(API.LogType.Debug, "Update " + Topic);
-
-/*            if (!MqttClient.IsConnected && FailedConnects < 2) {
-                try {
-                    ConnectAsync(Server, Port, Username, Password, ClientId).Wait();
-                }
-                catch (Exception ex) {
-
-                }
-                if (!MqttClient.IsConnected) {
-                    FailedConnects++;
-                    Rainmeter.Log(API.LogType.Warning, "Client failed to reconnect to " + Server + " : " + Port);
-                } else {
-                    FailedConnects = 0;
-                }
-            }*/
-
-            return GetValue();
+            // Rainmeter.Log(API.LogType.Debug, "Update " + Topic); OK
+            return Convert.ToDouble( MqttClient.IsConnected );
         }
 
         internal override String GetString(String topic) {
             if (Topics.ContainsKey(topic)) {
-                Rainmeter.Log(API.LogType.Debug, "GetString " + topic);
+                Debug( "GetString " + topic, 3);
                 String value = Topics[topic].ToString();
 
                 return value;
             } else {
-                Rainmeter.Log(API.LogType.Debug, "GetString " + topic + " not found");
+                Debug( "GetString " + topic + " not found", 1);
             }
 
             // MeasureType.Major, MeasureType.Minor, and MeasureType.Number are
@@ -428,9 +511,19 @@ namespace MqttPlugin {
             return null;
         }
 
-        internal double GetValue() {
-            Rainmeter.Log(API.LogType.Debug, "GetValue");
-            return 0.0;
+        internal override string GetString() {
+            return (MqttClient.IsConnected ? "Connected" : "Disconnected");
+        }
+
+        internal double GetValue(String topic) {
+            // Rainmeter.Log(API.LogType.Debug, "GetValue"); OK
+            String strValue = GetString(topic);
+
+            if (Double.TryParse(strValue, out double dblValue)) {
+                return dblValue;
+            } else {
+                return 0.0;
+            }
         }
 
     }
@@ -472,10 +565,12 @@ namespace MqttPlugin {
 
         internal override double Update() {
             if (ParentMeasure != null) {
-                return ParentMeasure.GetValue();
+                // Child Topic value
+                return ParentMeasure.GetValue(Topic);
+            } else {
+                // Server Connection state
+                return Convert.ToDouble(ParentMeasure.IsConnected);
             }
-
-            return 0.0;
         }
         internal override String GetString() {
             if (ParentMeasure != null) {
@@ -494,7 +589,6 @@ namespace MqttPlugin {
                     return data;
                 }
             }
-
             return "";
         }
 

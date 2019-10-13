@@ -23,10 +23,10 @@ This project consists of 2 folders:
 
 The MqttPlugin is based on the [PluginParentChild example](https://github.com/rainmeter/rainmeter-plugin-sdk/tree/master/C%23/PluginParentChild) from the SDK.
 
-There is a dependency on 3 NuGet packages: MQTTnet, Newtonsoft.Json and Costura.Fody.
-These are downloaded and included automatically when you open the project for the first time.
-
 ## Compilation
+
+There is a dependency on 3 NuGet packages: MQTTnet, Newtonsoft.Json and Costura.Fody.
+These are automatically downloaded and included when you open the project for the first time.
 
 The solution (.sln) file can be built using the free [Visual Studio 2019 Community Edition](https://visualstudio.microsoft.com/vs/community/).
 If needed, right-click the solution item and run 'Restore NuGet packages' to install all dependencies.
@@ -34,10 +34,12 @@ Then Build the Solution.
 
 ## Installation
 
-Copy the single MqttPlugin.dll from bin\x86 or bin\x64 into your %appdata%\Rainmeter\Plugins directory.
-Copy the examples folder to Documents\Rainmeter\Skins.
+The plugin is now completely self-contained. Just copy the `MqttPlugin.dll` file from bin\x86 or bin\x64 into your %appdata%\Rainmeter\Plugins directory.
+Optionally, also copy the examples folder to Documents\Rainmeter\Skins.
 
-Note: If you installed v0.0.1 or v0.0.2, you can remove M2Mqtt.dll from your Rainmeter directory. And MqttPlugin.dll from your Plugins directory.
+_Note:_ If you previously installed v0.0.1 or v0.0.2, you can **remove** `M2Mqtt.dll` from your Rainmeter directory and **remove** `MqttPlugin.dll` from your Plugins directory.
+
+An `.rmskin` package is not yet available, but will be released once the MqttPlugin is ready for beta testing.
 
 ## Usage
 
