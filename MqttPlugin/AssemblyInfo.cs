@@ -4,11 +4,11 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 
 [assembly: AssemblyCopyright("© 2019 - NetwiZe.be")]
-[assembly: AssemblyVersion("0.1.0.0")]
+[assembly: AssemblyVersion("0.1.0.1013")]
 #if X64
-[assembly: AssemblyInformationalVersion("0.1.0.1012 (64-bit)")]
+[assembly: AssemblyInformationalVersion("0.1.0.1013 (64-bit)")]
 #else
-[assembly: AssemblyInformationalVersion("0.1.0.1012 (32-bit)")]
+[assembly: AssemblyInformationalVersion("0.1.0.1013 (32-bit)")]
 #endif
 [assembly: AssemblyProduct("Rainmeter")]
 [assembly: AssemblyTitle("MqqtPlugin")]
