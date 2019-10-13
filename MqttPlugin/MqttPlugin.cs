@@ -146,6 +146,7 @@ namespace MqttPlugin {
         internal String[] OnReloadBangs;
         internal String[] OnMessageBangs;
 
+        Rainmeter.API Rainmeter { get; }
         // All Topics of the Parent and Child Measures
         Hashtable Topics = new Hashtable();
         Hashtable Qos = new Hashtable();
@@ -442,6 +443,7 @@ namespace MqttPlugin {
             }
 
         }
+
 
         internal void Subscribe(String topic, byte qos) {
             if (!Qos.Contains(topic)) {
