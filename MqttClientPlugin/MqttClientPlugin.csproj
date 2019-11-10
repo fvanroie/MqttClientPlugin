@@ -9,8 +9,8 @@
     <ProjectGuid>{3699FA4F-5247-432A-B6C1-65F325EE58B9}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>NetwiZe.MqttPlugin</RootNamespace>
-    <AssemblyName>MqttPlugin</AssemblyName>
+    <RootNamespace>NetwiZe.MqttClientPlugin</RootNamespace>
+    <AssemblyName>MqttClient</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <OldToolsVersion>3.5</OldToolsVersion>
@@ -97,7 +97,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyInfo.cs" />
-    <Compile Include="MqttPlugin.cs" />
+    <Compile Include="MqttTopicMeasure.cs" />
+    <Compile Include="Measure.cs" />
+    <Compile Include="MqttClientPlugin.cs" />
+    <Compile Include="MqttClientMeasure.cs" />
     <Compile Include="$(SolutionDir)\API\RainmeterAPI.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -116,7 +119,9 @@
   </Target>
   -->
   <PropertyGroup>
-    <PostBuildEvent>"$(SolutionDir)API\DllExporter.exe" "$(ConfigurationName)" "$(PlatformName)" "$(TargetDir)\" "$(TargetFileName)"</PostBuildEvent>
+    <PostBuildEvent>"$(SolutionDir)API\DllExporter.exe" "$(ConfigurationName)" "$(PlatformName)" "$(TargetDir)\" "$(TargetFileName)"
+if $(ConfigurationName) == Release powershell.exe -Version 5.1  $(SolutionDir)BuildTools\Build-RainmeterSkin.ps1 -TargetPath "$(TargetPath)" -PlatformName "$(PlatformName)" -SolutionDir  "$(SolutionDir)\" -Skin Mqtt
+</PostBuildEvent>
   </PropertyGroup>
   <Import Project="..\packages\Fody.6.0.0\build\Fody.targets" Condition="Exists('..\packages\Fody.6.0.0\build\Fody.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
@@ -126,4 +131,7 @@
     <Error Condition="!Exists('..\packages\Fody.6.0.0\build\Fody.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Fody.6.0.0\build\Fody.targets'))" />
     <Error Condition="!Exists('..\packages\Costura.Fody.4.1.0\build\Costura.Fody.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Costura.Fody.4.1.0\build\Costura.Fody.props'))" />
   </Target>
+  <PropertyGroup>
+    <PreBuildEvent>powershell $(SolutionDir)\BuildTools\New-BuildVersion.ps1</PreBuildEvent>
+  </PropertyGroup>
 </Project>
