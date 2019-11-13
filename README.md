@@ -30,7 +30,7 @@ These are automatically downloaded and included when you open the project for th
 
 [3]:https://github.com/chkr1011/MQTTnet
 [4]:https://github.com/JamesNK/Newtonsoft.Json
-[5]:
+[5]:https://github.com/Fody/Costura
 
 The solution (.sln) file can be built using the free [Visual Studio 2019 Community Edition](https://visualstudio.microsoft.com/vs/community/).
 If needed, right-click the solution item and run 'Restore NuGet packages' to install all dependencies.
