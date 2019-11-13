@@ -1,9 +1,5 @@
 # MqttClient Plugin for Rainmeter
 
-| WARNING: Work in progress! |
-| --- |
-
-
 ## About
 
 MqttClient Plugin allows you to use data from an MQTT broker within [Rainmeter](http://www.rainmeter.net).
@@ -41,7 +37,10 @@ Then Build the Solution.
 The plugin is now completely self-contained. Just copy the `MqttClient.dll` file from bin\x86 or bin\x64 into your %appdata%\Rainmeter\Plugins directory.
 Optionally, also copy the examples folder to Documents\Rainmeter\Skins.
 
-_Note:_ If you previously installed v0.0.1 or v0.0.2, you can **remove** `M2Mqtt.dll` from your Rainmeter directory and **remove** `MqttPlugin.dll` from your Plugins directory. These aren't needed anymore.
+---
+If you previously installed v0.0.1 or v0.0.2, you can **remove** `M2Mqtt.dll` from your Rainmeter directory and **remove** `MqttPlugin.dll` from your Plugins directory. These aren't needed anymore.
+---
+
 
 An `.rmskin` package is not yet available, but will be released once the MqttPlugin is ready for beta testing.
 
