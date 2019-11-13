@@ -25,8 +25,12 @@ The MqttClientPlugin is based on the [PluginParentChild example](https://github.
 
 ## Compilation
 
-There is a dependency on 3 NuGet packages: MQTTnet, Newtonsoft.Json and Costura.Fody.
+There is a dependency on 3 NuGet packages: [MQTTnet][3], [Newtonsoft.Json][4] and [Costura.Fody][5].
 These are automatically downloaded and included when you open the project for the first time.
+
+[3]
+[4]:https://github.com/JamesNK/Newtonsoft.Json
+[5]
 
 The solution (.sln) file can be built using the free [Visual Studio 2019 Community Edition](https://visualstudio.microsoft.com/vs/community/).
 If needed, right-click the solution item and run 'Restore NuGet packages' to install all dependencies.
