@@ -1,15 +1,14 @@
+﻿using System.Reflection;
 using System.Resources;
 using System.Runtime.InteropServices;
-using System.Reflection;
-using System.Runtime.CompilerServices;
 
-[assembly: AssemblyCopyright("� 2019 - NetwiZe.be")]
-[assembly: AssemblyVersion("0.1.24.1015")]
-[assembly: AssemblyFileVersion("0.1.24.1015")]
+[assembly: AssemblyCopyright("© 2019 - NetwiZe.be")]
+[assembly: AssemblyVersion("0.1.29.0216")]
+[assembly: AssemblyFileVersion("0.1.29.0216")]
 #if X64
-[assembly: AssemblyInformationalVersion("0.1.24.1015 (64-bit)")]
+[assembly: AssemblyInformationalVersion("0.1.29.0216 (64-bit)")]
 #else
-[assembly: AssemblyInformationalVersion("0.1.24.1015 (32-bit)")]
+[assembly: AssemblyInformationalVersion("0.1.29.0216 (32-bit)")]
 #endif
 [assembly: AssemblyProduct("Rainmeter")]
 [assembly: AssemblyTitle("MqqtClient")]

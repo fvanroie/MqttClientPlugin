@@ -8,6 +8,7 @@ FodyWeavers.xsd
 M2Mqtt/.vs/
 MqttPlugin/.vs/
 [Rr]eleases/
+BuildTools/
 
 # User-specific files
 *.suo

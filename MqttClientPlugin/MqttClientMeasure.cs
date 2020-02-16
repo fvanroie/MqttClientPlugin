@@ -16,19 +16,19 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-using System;
-using System.Text; // Encoding
-using System.Security;
-using System.Threading.Tasks;
-using System.Collections.Generic;
-using System.Collections;
-using System.Runtime.InteropServices;
-using Rainmeter;
 using MQTTnet;
 using MQTTnet.Client;
 using MQTTnet.Client.Options;
-using MQTTnet.Protocol;
 using MQTTnet.Extensions.ManagedClient;
+using MQTTnet.Protocol;
+using Rainmeter;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
+using System.Security;
+using System.Text; // Encoding
+using System.Threading.Tasks;
 
 // Overview: This example demonstrates a basic implementation of a parent/child
 // measure structure. In this particular example, we have a "parent" measure
@@ -79,9 +79,11 @@ using MQTTnet.Extensions.ManagedClient;
     Text="mServer: %1#CRLF#mTopic1: %2#CRLF#mTopic: %3"
 */
 
-namespace NetwiZe.MqttClientPlugin {
+namespace NetwiZe.MqttClientPlugin
+{
 
-    internal class MqttClientMeasure : Measure {
+    internal class MqttClientMeasure : Measure
+    {
         internal IntPtr Skin;
         internal int DebugLevel = 0;
 
@@ -117,14 +119,15 @@ namespace NetwiZe.MqttClientPlugin {
         // The Topic of the Parent Measure
         String Topic;
 
-        internal MqttClientMeasure(Rainmeter.API api) {
+        internal MqttClientMeasure(Rainmeter.API api)
+        {
             ParentMeasures.Add(this);
             ParentRainmeterApis.Add(api);
             this.Rainmeter = api;
             this.Name = api.GetMeasureName();
             Skin = api.GetSkin();
             DebugLevel = (ushort)api.ReadInt("DebugLevel", 0);
-            
+
             Server = api.ReadString("Server", "localhost");
             Port = (ushort)api.ReadInt("Port", 1883);
             RetryInterval = (ushort)api.ReadDouble("RetryInterval", 5.0);
@@ -132,115 +135,138 @@ namespace NetwiZe.MqttClientPlugin {
             Username = api.ReadString("Username", "");
             Password = new SecureString();
             foreach (char ch in api.ReadString("Password", "")) Password.AppendChar(ch);
-            
+
             /* Mqtt Server Bangs */
-            OnConnectBangs = SplitBangs( api.ReadString("OnConnect", "") );
-            OnDisconnectBangs = SplitBangs( api.ReadString("OnConnect", "") );
-            OnReloadBangs = SplitBangs( api.ReadString("OnReload", "") );
-            OnMessageBangs = SplitBangs( api.ReadString("OnMessage", "") );
+            OnConnectBangs = SplitBangs(api.ReadString("OnConnect", ""));
+            OnDisconnectBangs = SplitBangs(api.ReadString("OnConnect", ""));
+            OnReloadBangs = SplitBangs(api.ReadString("OnReload", ""));
+            OnMessageBangs = SplitBangs(api.ReadString("OnMessage", ""));
 
             MqttClient = Factory.CreateManagedMqttClient();
 
             /* Setup Event Handlers */
-            MqttClient.UseConnectedHandler(e => {
-                if (!MqttClientMeasure.ParentRainmeterApis.Contains(Rainmeter)) { return;  }
+            MqttClient.UseConnectedHandler(e =>
+            {
+               if (!MqttClientMeasure.ParentRainmeterApis.Contains(Rainmeter)) { return; }
 
-                Log(API.LogType.Notice, "Connected to " + Server + " : " + Port);
+               Log(API.LogType.Notice, "Connected to " + Server + " : " + Port);
 
-                if (OnConnectBangs.Length > 0) {
-                    Log(API.LogType.Notice, "Executing OnConnect Bangs");
-                    ExecuteBangs(OnConnectBangs);
-                }
+               if (OnConnectBangs.Length > 0)
+               {
+                   Log(API.LogType.Notice, "Executing OnConnect Bangs");
+                   ExecuteBangs(OnConnectBangs);
+               }
             });
 
-            MqttClient.UseApplicationMessageReceivedHandler(e => {
-                if (!MqttClientMeasure.ParentRainmeterApis.Contains(Rainmeter)) { return; }
+            MqttClient.UseApplicationMessageReceivedHandler(e =>
+           {
+               if (!MqttClientMeasure.ParentRainmeterApis.Contains(Rainmeter)) { return; }
 
-                e.GetType();
-                String topic = e.ApplicationMessage.Topic;
-                String payload = Encoding.UTF8.GetString(e.ApplicationMessage.Payload);
-                try {
-                    Debug( "### RECEIVED APPLICATION MESSAGE ###", 3);
-                    Debug( $" >> Topic = {e.ApplicationMessage.Topic}", 4);
-                    Debug( $" >> Payload = {Encoding.UTF8.GetString(e.ApplicationMessage.Payload)}", 4);
-                    Debug( $" >> QoS = {e.ApplicationMessage.QualityOfServiceLevel}", 5);
-                    Debug( $" >> Retain = {e.ApplicationMessage.Retain}", 5);
+               e.GetType();
+               String topic = e.ApplicationMessage.Topic;
+               String payload = Encoding.UTF8.GetString(e.ApplicationMessage.Payload);
+               try
+               {
+                   Debug("### RECEIVED APPLICATION MESSAGE ###", 3);
+                   Debug($" >> Topic = {e.ApplicationMessage.Topic}", 4);
+                   Debug($" >> Payload = {Encoding.UTF8.GetString(e.ApplicationMessage.Payload)}", 4);
+                   Debug($" >> QoS = {e.ApplicationMessage.QualityOfServiceLevel}", 5);
+                   Debug($" >> Retain = {e.ApplicationMessage.Retain}", 5);
 
-                    if (Topics.Contains(topic)) {
-                        Topics[topic] = payload;
-                        Log(API.LogType.Notice, "Received update for " + topic);
-                    } else {
-                        Topics.Add(topic, payload);
-                        Log(API.LogType.Warning, "Received payload for unknown topic " + topic);
-                    }
+                   if (Topics.Contains(topic))
+                   {
+                       Topics[topic] = payload;
+                       Log(API.LogType.Notice, "Received update for " + topic);
+                   }
+                   else
+                   {
+                       Topics.Add(topic, payload);
+                       Log(API.LogType.Warning, "Received payload for unknown topic " + topic);
+                   }
 
-                    if (OnMessageBangs.Length > 0) {
-                        Log(API.LogType.Notice, "Executing OnMessage Bangs");
-                        ExecuteBangs(OnMessageBangs);
-                    }
-                }
-                catch {
-                    // Error Application
-                }
+                   if (OnMessageBangs.Length > 0)
+                   {
+                       Log(API.LogType.Notice, "Executing OnMessage Bangs");
+                       ExecuteBangs(OnMessageBangs);
+                   }
+               }
+               catch
+               {
+                   // Error Application
+               }
 
-            });
+           });
 
-            MqttClient.UseDisconnectedHandler(e => {
-                if (!MqttClientMeasure.ParentRainmeterApis.Contains(Rainmeter)) { return;  }
+            MqttClient.UseDisconnectedHandler(e =>
+           {
+               if (!MqttClientMeasure.ParentRainmeterApis.Contains(Rainmeter)) { return; }
 
-                Log(API.LogType.Error, e.Exception?.Message);
-                Log(API.LogType.Error, e.AuthenticateResult?.ReasonString);
-                Log(API.LogType.Error, e.ClientWasConnected.ToString());
+               Log(API.LogType.Error, e.Exception?.Message);
+               Log(API.LogType.Error, e.AuthenticateResult?.ReasonString);
+               Log(API.LogType.Error, e.ClientWasConnected.ToString());
 
-                if (!MqttClient.IsConnected) {
-                    Log(API.LogType.Warning, "Lost previous connection to " + Server + " : " + Port);
-                }
+               if (!MqttClient.IsConnected)
+               {
+                   Log(API.LogType.Warning, "Lost previous connection to " + Server + " : " + Port);
+               }
 
-                if (OnDisconnectBangs.Length > 0) {
-                    Log(API.LogType.Notice, "Executing OnDisconnect Bangs");
-                    ExecuteBangs(OnDisconnectBangs);
-                }
-            });
+               if (OnDisconnectBangs.Length > 0)
+               {
+                   Log(API.LogType.Notice, "Executing OnDisconnect Bangs");
+                   ExecuteBangs(OnDisconnectBangs);
+               }
+           });
 
-            try {
+            try
+            {
                 Log(API.LogType.Warning, "Connecting to " + Server + " : " + Port + "...");
                 ConnectAsync(Server, Port, Username, Password, ClientId).Wait();
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 Log(API.LogType.Error, "Exception trying to connect: " + ex);
                 return;
             }
         }
 
-        internal void ExecuteBangs(String[] bangs) {
-            foreach (String bang in bangs) {
+        internal void ExecuteBangs(String[] bangs)
+        {
+            foreach (String bang in bangs)
+            {
                 Debug("Executing Bang: " + bang, 2);
-                if (ParentMeasures.Contains(this)) {
+                if (ParentMeasures.Contains(this))
+                {
                     API.Execute(Skin, bang);
                 }
             }
         }
 
-        internal String[] SplitBangs(String input) {
+        internal String[] SplitBangs(String input)
+        {
             var result = new List<String>();
             int level = 0;
             StringBuilder output = new StringBuilder(input.Length);
 
-            foreach (var character in input) {
-                switch (character) {
+            foreach (var character in input)
+            {
+                switch (character)
+                {
                     case '[':
                         level++;
                         break;
                     case ']':
                         level--;
-                        if (level == 0) {
+                        if (level == 0)
+                        {
                             result.Add(output.ToString());
-                            Debug( " - Adding new BANG: " + output.ToString(), 5);
+                            Debug(" - Adding new BANG: " + output.ToString(), 5);
                             output.Clear();
-                        } else if (level < 0) {
+                        }
+                        else if (level < 0)
+                        {
                             level = 0;
                         }
-                            break;
+                        break;
                     default:
                         output.Append(character);
                         break;
@@ -249,51 +275,64 @@ namespace NetwiZe.MqttClientPlugin {
 
             return result.ToArray();
         }
-        internal void Debug(String message, int level) {
-            if (DebugLevel >= level) {
+        internal void Debug(String message, int level)
+        {
+            if (DebugLevel >= level)
+            {
                 Log(API.LogType.Debug, message);
             }
         }
-        internal async void Log(API.LogType type, String message) {
+        internal async void Log(API.LogType type, String message)
+        {
             if (ParentMeasures.Contains(this) &&
-                ParentRainmeterApis.Contains(Rainmeter)) {
-                try {
+                ParentRainmeterApis.Contains(Rainmeter))
+            {
+                try
+                {
                     await Task.Run(() => Rainmeter.Log(type, message));
                     //Rainmeter.Log(API.LogType.Debug, message);
                 }
-                catch {
+                catch
+                {
                     DebugLevel += 0;    // breakpoint
                 }
             }
         }
 
-        internal String SecureStringToString(SecureString value) {
+        internal String SecureStringToString(SecureString value)
+        {
             IntPtr valuePtr = IntPtr.Zero;
-            try {
+            try
+            {
                 valuePtr = Marshal.SecureStringToGlobalAllocUnicode(value);
                 return Marshal.PtrToStringUni(valuePtr);
             }
-            finally {
+            finally
+            {
                 Marshal.ZeroFreeGlobalAllocUnicode(valuePtr);
             }
         }
 
-        internal override void Dispose() {
+        internal override void Dispose()
+        {
             ParentMeasures.Remove(this);
             ParentRainmeterApis.Remove(Rainmeter);
-            Debug("Disposing Client Measure " + this.Name + " ...", 1);    
+            Debug("Disposing Client Measure " + this.Name + " ...", 1);
             DisconnectAsync().Wait();
             MqttClient.Dispose();
             this.ClearBuffer();
         }
 
-        private async Task ConnectAsync(String server, ushort port, String username, SecureString password, String clientID = null) {
-            if (MqttClient.IsConnected) {
-                Debug( "Already connected...", 1);
+        private async Task ConnectAsync(String server, ushort port, String username, SecureString password, String clientID = null)
+        {
+            if (MqttClient.IsConnected)
+            {
+                Debug("Already connected...", 1);
                 return;
             }
 
-            if (clientID == null) {
+            if (clientID == null)
+            {
                 clientID = Guid.NewGuid().ToString();
             }
 
@@ -309,20 +348,23 @@ namespace NetwiZe.MqttClientPlugin {
                 .WithClientOptions(options)
                 .Build();
 
-            Debug( "Connecting...", 1);
+            Debug("Connecting...", 1);
             //await MqttClient.ConnectAsync(options, CancellationToken.None);
             await MqttClient.StartAsync(managedClientOptions);
         }
 
-        private async Task DisconnectAsync() {
-            if (MqttClient.IsConnected) {
-                Debug( "Disconnecting", 1);
+        private async Task DisconnectAsync()
+        {
+            if (MqttClient.IsConnected)
+            {
+                Debug("Disconnecting", 1);
                 //await MqttClient.DisconnectAsync();
                 await MqttClient.StopAsync();
             }
         }
 
-        private async Task PublishAsync(String topic, String value) {
+        private async Task PublishAsync(String topic, String value)
+        {
             var message = new MqttApplicationMessageBuilder()
                 .WithTopic(topic)
                 .WithPayload(value)
@@ -332,10 +374,12 @@ namespace NetwiZe.MqttClientPlugin {
             await MqttClient.PublishAsync(message);
         }
 
-        private async Task SubscribeAsync(String topic, byte qos) {
+        private async Task SubscribeAsync(String topic, byte qos)
+        {
             MqttQualityOfServiceLevel mqttQos;
 
-            switch (qos) {
+            switch (qos)
+            {
                 case 0:
                     mqttQos = MQTTnet.Protocol.MqttQualityOfServiceLevel.AtLeastOnce;
                     break;
@@ -349,7 +393,8 @@ namespace NetwiZe.MqttClientPlugin {
                     throw new Exception("Invalid Qos value (0-2).");
             }
 
-            if (string.IsNullOrEmpty(topic)) {
+            if (string.IsNullOrEmpty(topic))
+            {
                 throw new Exception("Topic cannot be empty.");
             }
 
@@ -361,14 +406,16 @@ namespace NetwiZe.MqttClientPlugin {
                 );
         }
 
-        internal override void Reload(Rainmeter.API api, ref double maxValue) {
+        internal override void Reload(Rainmeter.API api, ref double maxValue)
+        {
             Topic = api.ReadString("Topic", "");
 
-            Debug( "Reloading", 1);
+            Debug("Reloading", 1);
             base.Reload(api, ref maxValue);
-            Debug( "Reloaded", 1);
+            Debug("Reloaded", 1);
 
-            if (OnReloadBangs.Length > 0) {
+            if (OnReloadBangs.Length > 0)
+            {
                 Log(API.LogType.Notice, "Executing OnReload Bangs");
                 ExecuteBangs(OnReloadBangs);
             }
@@ -376,60 +423,76 @@ namespace NetwiZe.MqttClientPlugin {
         }
 
 
-        internal void Subscribe(String topic, byte qos) {
-            if (!Qos.Contains(topic)) {
+        internal void Subscribe(String topic, byte qos)
+        {
+            if (!Qos.Contains(topic))
+            {
                 Qos.Add(topic, qos);
             }
-            if (!Topics.Contains(topic)) {
+            if (!Topics.Contains(topic))
+            {
                 Topics.Add(topic, "");
             }
 
-            try {
+            try
+            {
                 SubscribeAsync(topic, qos).Wait();
                 Log(API.LogType.Notice, "Subscribed to " + topic);
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 Log(API.LogType.Error, ex.ToString());
             }
         }
 
-        internal override void Publish(String topic, String value, byte qos = 0, bool retain = false) {
+        internal override void Publish(String topic, String value, byte qos = 0, bool retain = false)
+        {
             //if (MqttClient.IsConnected) {
-                Log(API.LogType.Notice, "Publish message " + topic + " = " + value);
-                try {
-                    PublishAsync(topic, value).Wait();
-                }
-                catch (AggregateException e) {
-                    foreach (var ex in e.InnerExceptions) {
-                        Log(API.LogType.Error, "Publish failed:" + ex);
-                    }
-                }
-                catch (Exception ex) {
+            Log(API.LogType.Notice, "Publish message " + topic + " = " + value);
+            try
+            {
+                PublishAsync(topic, value).Wait();
+            }
+            catch (AggregateException e)
+            {
+                foreach (var ex in e.InnerExceptions)
+                {
                     Log(API.LogType.Error, "Publish failed:" + ex);
                 }
+            }
+            catch (Exception ex)
+            {
+                Log(API.LogType.Error, "Publish failed:" + ex);
+            }
 
             //} else {
             //    Rainmeter.Log(API.LogType.Error, "Publish failed, client is not connected.");
             //}
         }
 
-        internal override void ExecuteBang(String args) {
+        internal override void ExecuteBang(String args)
+        {
             Publish(Topic, args, 0, false);
         }
 
-        internal override double Update() {
+        internal override double Update()
+        {
             // Rainmeter.Log(API.LogType.Debug, "Update " + Topic); OK
-            return Convert.ToDouble( MqttClient.IsConnected );
+            return Convert.ToDouble(MqttClient.IsConnected);
         }
 
-        internal override String GetString(String topic) {
-            if (Topics.ContainsKey(topic)) {
-                Debug( "GetString " + topic, 3);
+        internal override String GetString(String topic)
+        {
+            if (Topics.ContainsKey(topic))
+            {
+                Debug("GetString " + topic, 3);
                 String value = Topics[topic].ToString();
 
                 return value;
-            } else {
-                Debug( "GetString " + topic + " not found", 1);
+            }
+            else
+            {
+                Debug("GetString " + topic + " not found", 1);
             }
 
             // MeasureType.Major, MeasureType.Minor, and MeasureType.Number are
@@ -439,17 +502,22 @@ namespace NetwiZe.MqttClientPlugin {
             return null;
         }
 
-        internal override string GetString() {
+        internal override string GetString()
+        {
             return (MqttClient.IsConnected ? "Connected" : "Disconnected");
         }
 
-        internal double GetValue(String topic) {
+        internal double GetValue(String topic)
+        {
             // Rainmeter.Log(API.LogType.Debug, "GetValue"); OK
             String strValue = GetString(topic);
 
-            if (Double.TryParse(strValue, out double dblValue)) {
+            if (Double.TryParse(strValue, out double dblValue))
+            {
                 return dblValue;
-            } else {
+            }
+            else
+            {
                 return 0.0;
             }
         }
