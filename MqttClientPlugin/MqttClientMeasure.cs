@@ -1,5 +1,5 @@
 ﻿/*
-  Copyright (C) 2019 NetwiZe.be
+  Copyright (C) 2020 NetwiZe.be
 
   This program is free software; you can redistribute it and/or
   modify it under the terms of the GNU General Public License
@@ -16,12 +16,6 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-using MQTTnet;
-using MQTTnet.Client;
-using MQTTnet.Client.Options;
-using MQTTnet.Extensions.ManagedClient;
-using MQTTnet.Protocol;
-using Rainmeter;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -29,6 +23,12 @@ using System.Runtime.InteropServices;
 using System.Security;
 using System.Text; // Encoding
 using System.Threading.Tasks;
+using MQTTnet;
+using MQTTnet.Client;
+using MQTTnet.Client.Options;
+using MQTTnet.Extensions.ManagedClient;
+using MQTTnet.Protocol;
+using Rainmeter;
 
 // Overview: This example demonstrates a basic implementation of a parent/child
 // measure structure. In this particular example, we have a "parent" measure
@@ -147,15 +147,15 @@ namespace NetwiZe.MqttClientPlugin
             /* Setup Event Handlers */
             MqttClient.UseConnectedHandler(e =>
             {
-               if (!MqttClientMeasure.ParentRainmeterApis.Contains(Rainmeter)) { return; }
+                if (!MqttClientMeasure.ParentRainmeterApis.Contains(Rainmeter)) { return; }
 
-               Log(API.LogType.Notice, "Connected to " + Server + " : " + Port);
+                Log(API.LogType.Notice, "Connected to " + Server + " : " + Port);
 
-               if (OnConnectBangs.Length > 0)
-               {
-                   Log(API.LogType.Notice, "Executing OnConnect Bangs");
-                   ExecuteBangs(OnConnectBangs);
-               }
+                if (OnConnectBangs.Length > 0)
+                {
+                    Log(API.LogType.Notice, "Executing OnConnect Bangs");
+                    ExecuteBangs(OnConnectBangs);
+                }
             });
 
             MqttClient.UseApplicationMessageReceivedHandler(e =>
@@ -339,13 +339,17 @@ namespace NetwiZe.MqttClientPlugin
             var options = new MqttClientOptionsBuilder()
                 .WithClientId(clientID)
                 .WithTcpServer(server, port)
-                .WithCredentials(username, SecureStringToString(password))
                 .WithCleanSession(true)    // must be true for Managed Client, easier reconnects
-                .Build();
+                ;
+            //.Build();
+
+            // Only use authentication when a username or password is specified
+            if (username != "" || SecureStringToString(password) != "") options = options.WithCredentials(username, SecureStringToString(password));
+
 
             var managedClientOptions = new ManagedMqttClientOptionsBuilder()
                 .WithAutoReconnectDelay(TimeSpan.FromSeconds(RetryInterval))
-                .WithClientOptions(options)
+                .WithClientOptions(options.Build())
                 .Build();
 
             Debug("Connecting...", 1);
@@ -399,7 +403,7 @@ namespace NetwiZe.MqttClientPlugin
             }
 
             await MqttClient.SubscribeAsync(
-                    new TopicFilterBuilder()
+                    new MqttTopicFilterBuilder()
                     .WithTopic(topic)
                     .WithQualityOfServiceLevel(mqttQos)
                     .Build()
