@@ -48,4 +48,11 @@ An `.rmskin` package is not yet available, but will be released once the MqttPlu
 
 ## Usage
 
-See the examples folder for how to use the Measures.
+See the examples folder for how to use the Measures. Also check out the Wiki page for more information about the functionality.
+
+## Contributing
+
+You are welcome to contribute to the development of this plugin:
+- Share examples on how to use the MqttPlugin in Rainmeter skins
+- File a Bug Report
+- Feature requests
