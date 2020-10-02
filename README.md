@@ -5,12 +5,6 @@
 [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](#Contributing)
 [![GitHub issues](https://img.shields.io/github/issues/fvanroie/MqttClientPlugin.svg)](http://github.com/fvanroie/MqttClientPlugin/issues)
 
-
-[![GitHub release](https://img.shields.io/github/release/fvanroie/MqttClientPlugin.svg)](https://github.com/fvanroie/MqttClientPlugin/releases)
-[![GitHub](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/fvanroie/MqttClientPlugin/blob/master/LICENSE)
-[![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](#Contributing)
-[![GitHub issues](https://img.shields.io/github/issues/fvanroie/MqttClientPlugin.svg)](http://github.com/fvanroie/MqttClientPlugin/issues)
-
 ## About
 
 MqttClient Plugin allows you to use data from an MQTT broker within [Rainmeter](http://www.rainmeter.net).
