@@ -5,6 +5,9 @@
 [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](#Contributing)
 [![GitHub issues](https://img.shields.io/github/issues/fvanroie/MqttClientPlugin.svg)](http://github.com/fvanroie/MqttClientPlugin/issues)
 
+Make your desktop interact with your IOT devices, like smart lights, power meters, temperature and humidity sensors, etc...
+Monitor sensors and create buttons to trigger an action or scene on your HomeAutomation system.
+
 ## About
 
 MqttClient Plugin allows you to use data from an MQTT broker within [Rainmeter](http://www.rainmeter.net).
