@@ -9,6 +9,7 @@ M2Mqtt/.vs/
 MqttPlugin/.vs/
 [Rr]eleases/
 BuildTools/
+.editorconfig
 
 # User-specific files
 *.suo
