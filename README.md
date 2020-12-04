@@ -4,7 +4,7 @@
 [![GitHub](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/fvanroie/MqttClientPlugin/blob/master/LICENSE)
 [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](#Contributing)
 [![GitHub issues](https://img.shields.io/github/issues/fvanroie/MqttClientPlugin.svg)](http://github.com/fvanroie/MqttClientPlugin/issues)
-[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/fvanroie/MqttClientPlugin/Build%20Plugin?color=%237289DA&label=Build%20Plugin&logo=github&logoColor=%23dddddd)](https://github.com/fvanroie/MqttClientPlugin/actions?query=workflow%3A%22Build+Plugin%22)
+[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/fvanroie/MqttClientPlugin/Build%20Plugin?label=Build%20Plugin&logo=github&logoColor=%23dddddd)](https://github.com/fvanroie/MqttClientPlugin/actions?query=workflow%3A%22Build+Plugin%22)
 [![Discord](https://img.shields.io/discord/538814618106331137?color=%237289DA&label=support&logo=discord&logoColor=white)][6]
 
 Make your desktop interact with your IOT devices, like smart lights, power meters, temperature and humidity sensors, etc...
