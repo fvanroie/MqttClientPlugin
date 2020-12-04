@@ -34,7 +34,7 @@ jobs:
 
     strategy:
       matrix:
-        configuration: [Debug, Release]
+        configuration: [Release]
         platform: [x86, x64]
 
     runs-on: windows-latest
@@ -48,16 +48,16 @@ jobs:
         fetch-depth: 0
 
     # Install the .NET Core workload
-    - name: Install .NET Core
-      uses: actions/setup-dotnet@v1
-      with:
-        dotnet-version: 3.1.101
+    #- name: Install .NET Core
+    #  uses: actions/setup-dotnet@v1
+    #  with:
+    #    dotnet-version: 3.1.101
 
     - name: Restore NuGet Packages
       run: nuget restore $env:Solution_Name
 
-    - name: Find MSBuild path
-      run: dir HKLM:\SOFTWARE\Microsoft\MSBuild\ToolsVersions\
+    #- name: Find MSBuild path
+    #  run: dir HKLM:\SOFTWARE\Microsoft\MSBuild\ToolsVersions\
 
     # Add  MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
     - name: Setup MSBuild.exe
@@ -68,14 +68,14 @@ jobs:
     #  run: dotnet test
 
     # Restore the application to populate the obj folder with RuntimeIdentifiers
-    - name: Restore the application
+    - name: Restore the Plugin folder
       run: msbuild $env:Solution_Name /t:Restore /p:Configuration=$env:Configuration /p:Platform=$env:Platform
       env:
         Configuration: ${{ matrix.configuration }}
         Platform: ${{ matrix.platform }} 
 
     # Create the app package by building and packaging the Windows Application Packaging project
-    - name: Create the app package
+    - name: Build the Plugin
       run: msbuild $env:Wap_Project_Path /t:Build /p:Configuration=$env:Configuration /p:Platform=$env:Platform
       env:
         Configuration: ${{ matrix.configuration }}
