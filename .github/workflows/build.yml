@@ -35,6 +35,7 @@ jobs:
     strategy:
       matrix:
         configuration: [Debug, Release]
+        platform: [x86, x64]
 
     runs-on: windows-latest
     env:
