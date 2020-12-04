@@ -69,5 +69,5 @@ jobs:
     - name: Upload output dlls
       uses: actions/upload-artifact@v2
       with:
-        name: MqttClientPlugin.zip
+        name: MqttClientPlugin
         path: bin\Release\*\*.dll
