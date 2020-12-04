@@ -53,7 +53,7 @@ jobs:
         dotnet-version: 3.1.101
 
     - name: Restore NuGet Packages
-      run: nuget restore SimpleFrameworkApp.sln
+      run: nuget restore $env:Solution_Name
       
     # Add  MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
     - name: Setup MSBuild.exe
