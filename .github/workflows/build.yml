@@ -1,4 +1,4 @@
-name: Build MqttClientPlugin (C#.NET)
+name: Build Plugin
 
 on:
   push:
