@@ -5,7 +5,7 @@
 [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](#Contributing)
 [![GitHub issues](https://img.shields.io/github/issues/fvanroie/MqttClientPlugin.svg)](http://github.com/fvanroie/MqttClientPlugin/issues)
 [![Build Action](https://github.com/fvanroie/MqttClientPlugin/workflows/Build%20MqttClientPlugin%20(C%23.NET)/badge.svg)](/actions)
-[![Discord](https://img.shields.io/discord/538814618106331137?color=%237289DA&label=support&logo=discord&logoColor=white)][1]
+[![Discord](https://img.shields.io/discord/538814618106331137?color=%237289DA&label=support&logo=discord&logoColor=white)][6]
 
 Make your desktop interact with your IOT devices, like smart lights, power meters, temperature and humidity sensors, etc...
 Monitor sensors and create buttons to trigger an action or scene on your HomeAutomation system.
@@ -24,19 +24,12 @@ This project consists of 2 folders:
 - API : The Rainmeter API files as published in the [Rainmeter Plugin SDK][1]
 - MqttClientPlugin : The actual glue that binds the Rainmeter API and the MQTTnet Client.
 
-[1]:https://github.com/rainmeter/rainmeter-plugin-sdk
-[2]:https://github.com/eclipse/paho.mqtt.m2mqtt
-
 The MqttClientPlugin is based on the [PluginParentChild example](https://github.com/rainmeter/rainmeter-plugin-sdk/tree/master/C%23/PluginParentChild) from the SDK.
 
 ## Compilation
 
 There is a dependency on 3 NuGet packages: [MQTTnet][3], [Newtonsoft.Json][4] and [Costura.Fody][5].
 These are automatically downloaded and included when you open the project for the first time.
-
-[3]:https://github.com/chkr1011/MQTTnet
-[4]:https://github.com/JamesNK/Newtonsoft.Json
-[5]:https://github.com/Fody/Costura
 
 The solution (.sln) file can be built using the free [Visual Studio 2019 Community Edition](https://visualstudio.microsoft.com/vs/community/).
 If needed, right-click the solution item and run 'Restore NuGet packages' to install all dependencies.
@@ -64,6 +57,11 @@ You are welcome to contribute to the development of this plugin:
 
 ## Support
 
-For support using MqttClient Plugin, please join the [#hasp-lvgl channel][1] on Discord.
+For support using MqttClient Plugin, please join the [#hasp-lvgl channel][6] on Discord.
 
-[1]: https://discord.gg/VCWyuhF
+[1]:https://github.com/rainmeter/rainmeter-plugin-sdk
+[2]:https://github.com/eclipse/paho.mqtt.m2mqtt
+[3]:https://github.com/chkr1011/MQTTnet
+[4]:https://github.com/JamesNK/Newtonsoft.Json
+[5]:https://github.com/Fody/Costura
+[6]: https://discord.gg/VCWyuhF
