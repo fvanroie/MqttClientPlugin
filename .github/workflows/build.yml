@@ -70,4 +70,4 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: MqttClientPlugin.zip
-        path: bin\Release\*\*.bin
+        path: bin\Release\*\*.dll
