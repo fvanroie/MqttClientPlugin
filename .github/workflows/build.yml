@@ -54,7 +54,10 @@ jobs:
 
     - name: Restore NuGet Packages
       run: nuget restore $env:Solution_Name
-      
+
+    - name: Find MSBuild path
+      run: dir HKLM:\SOFTWARE\Microsoft\MSBuild\ToolsVersions\
+
     # Add  MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
     - name: Setup MSBuild.exe
       uses: microsoft/setup-msbuild@2008f912f56e61277eefaac6d1888b750582aa16
