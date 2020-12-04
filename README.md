@@ -4,6 +4,8 @@
 [![GitHub](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/fvanroie/MqttClientPlugin/blob/master/LICENSE)
 [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](#Contributing)
 [![GitHub issues](https://img.shields.io/github/issues/fvanroie/MqttClientPlugin.svg)](http://github.com/fvanroie/MqttClientPlugin/issues)
+![Build Action](https://github.com/fvanroie/MqttClientPlugin/workflows/Build%20MqttClientPlugin%20(C%23.NET)/badge.svg)
+[![Discord](https://img.shields.io/discord/538814618106331137?color=%237289DA&label=support&logo=discord&logoColor=white)][6]
 
 Make your desktop interact with your IOT devices, like smart lights, power meters, temperature and humidity sensors, etc...
 Monitor sensors and create buttons to trigger an action or scene on your HomeAutomation system.
@@ -59,3 +61,7 @@ You are welcome to contribute to the development of this plugin:
 - Share examples on how to use the MqttPlugin in Rainmeter skins
 - File a Bug Report
 - Feature requests
+
+## Support
+
+For support using MqttClient Plugin, please join the [#hasp-lvgl channel](https://discord.gg/VCWyuhF) on Discord.
