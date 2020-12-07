@@ -69,6 +69,7 @@ jobs:
   release:
     needs: build
       
+    steps:
     - name: Create release and upload firmware
       run: |
         set -x
