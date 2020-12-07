@@ -1,0 +1,73 @@
+name: Build Plugin
+
+on:
+  push:
+    branches: [ v0.2.0 ]
+  pull_request:
+    branches: [ v0.2.0 ]
+
+jobs:
+
+  build:
+
+    strategy:
+      matrix:
+        configuration: [Release]
+        platform: [x86, x64]
+
+    runs-on: windows-latest
+    env:
+      Solution_Name: MqttClientPlugin.sln
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    # Install the .NET Core workload
+    #- name: Install .NET Core
+    #  uses: actions/setup-dotnet@v1
+    #  with:
+    #    dotnet-version: 3.1.101
+
+    - name: Restore NuGet Packages
+      run: nuget restore $env:Solution_Name
+
+    #- name: Find MSBuild path
+    #  run: dir HKLM:\SOFTWARE\Microsoft\MSBuild\ToolsVersions\
+
+    # Add  MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
+    - name: Setup MSBuild.exe
+      uses: microsoft/setup-msbuild@v1.0.2
+
+    # Execute all unit tests in the solution
+    #- name: Execute unit tests
+    #  run: dotnet test
+
+    # Restore the application to populate the obj folder with RuntimeIdentifiers
+    - name: Restore the Plugin folder
+      run: msbuild $env:Solution_Name /t:Restore /p:Configuration=$env:Configuration /p:Platform=$env:Platform
+      env:
+        Configuration: ${{ matrix.configuration }}
+        Platform: ${{ matrix.platform }} 
+
+    # Create the app package by building and packaging the Windows Application Packaging project
+    - name: Build the Plugin
+      run: msbuild $env:Solution_Name /t:Build /p:Configuration=$env:Configuration /p:Platform=$env:Platform
+      env:
+        Configuration: ${{ matrix.configuration }}
+        Platform: ${{ matrix.platform }}
+
+    # Upload the MSIX package: https://github.com/marketplace/actions/upload-artifact
+    #- name: Upload build artifacts
+    #  uses: actions/upload-artifact@v2
+    #  with:
+    #    name: Plugin Package
+    #    path: bin\Release
+      
+    - name: Upload output dlls
+      uses: actions/upload-artifact@v2
+      with:
+        name: MqttClientPlugin
+        path: bin\Release\*\*.dll

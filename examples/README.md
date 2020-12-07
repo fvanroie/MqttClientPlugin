@@ -11,7 +11,7 @@ First define your server IP or hostname. Optionally include the username and pas
 ```
 [mqttServer]
 Measure=Plugin
-Plugin=MqttPlugin.dll
+Plugin=MqttClient
 Server=192.168.1.2
 ```
 
@@ -22,9 +22,16 @@ Then you can create multiple subscribe topics. Each topic needs to reference the
 ```
 [mqttTopic1]
 Measure=Plugin
-Plugin=MqttPlugin.dll
+Plugin=MqttClient
 ParentName=mqttServer
 Topic=mytopics/hello
+Qos=0
+
+[mqttTopic2]
+Measure=Plugin
+Plugin=MqttClient
+ParentName=mqttServer
+Topic=mytopics/world
 Qos=0
 ```
 The Qos parameter is optional.
