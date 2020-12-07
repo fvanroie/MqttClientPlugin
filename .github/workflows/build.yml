@@ -46,25 +46,32 @@ jobs:
     #  run: dotnet test
 
     # Restore the application to populate the obj folder with RuntimeIdentifiers
-    - name: Restore the Plugin folder
-      run: msbuild $env:Solution_Name /t:Restore /p:Configuration=$env:Configuration /p:Platform=$env:Platform
+    - name: Restore the Plugin folder x86
+      run: msbuild $env:Solution_Name /t:Restore /p:Configuration=$env:Configuration /p:Platform=x86
       env:
         Configuration: ${{ matrix.configuration }}
-        Platform: ${{ matrix.platform }} 
+#        Platform: ${{ matrix.platform }} 
+
+    # Restore the application to populate the obj folder with RuntimeIdentifiers
+    - name: Restore the Plugin folder x64
+      run: msbuild $env:Solution_Name /t:Restore /p:Configuration=$env:Configuration /p:Platform=x64
+      env:
+        Configuration: ${{ matrix.configuration }}
+#        Platform: ${{ matrix.platform }} 
 
     # Create the app package by building and packaging the Windows Application Packaging project
-    - name: Build the Plugin
-      run: msbuild $env:Solution_Name /t:Build /p:Configuration=$env:Configuration /p:Platform=$env:Platform
+    - name: Build the Plugin x86
+      run: msbuild $env:Solution_Name /t:Build /p:Configuration=$env:Configuration /p:Platform=x86
       env:
         Configuration: ${{ matrix.configuration }}
-        Platform: ${{ matrix.platform }}
+#        Platform: ${{ matrix.platform }}
 
-    # Upload the MSIX package: https://github.com/marketplace/actions/upload-artifact
-    #- name: Upload build artifacts
-    #  uses: actions/upload-artifact@v2
-    #  with:
-    #    name: Plugin Package
-    #    path: bin\Release
+    # Create the app package by building and packaging the Windows Application Packaging project
+    - name: Build the Plugin x64
+      run: msbuild $env:Solution_Name /t:Build /p:Configuration=$env:Configuration /p:Platform=x64
+      env:
+        Configuration: ${{ matrix.configuration }}
+#        Platform: ${{ matrix.platform }}
       
     - name: Upload output dlls
       uses: actions/upload-artifact@v2
