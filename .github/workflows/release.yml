@@ -1,4 +1,3 @@
-name: Release Plugin
 on:
   release:
     types: [created]
