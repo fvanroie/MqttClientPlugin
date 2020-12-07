@@ -60,6 +60,7 @@ jobs:
   upload:
     needs: build
     
+    steps:
     - name: Upload output dlls
       uses: actions/upload-artifact@v2
       with:
