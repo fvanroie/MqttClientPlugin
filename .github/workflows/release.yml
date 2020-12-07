@@ -59,6 +59,7 @@ jobs:
 
   upload:
     needs: build
+    runs-on: windows-latest
     
     steps:
     - name: Upload output dlls
@@ -69,6 +70,7 @@ jobs:
 
   release:
     needs: build
+    runs-on: windows-latest
       
     steps:
     - name: Create release and upload firmware
