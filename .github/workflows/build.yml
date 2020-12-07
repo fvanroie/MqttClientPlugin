@@ -75,7 +75,7 @@ jobs:
 
       
     - name: Create RmSkin
-      run: BuildTools\Build-RainmeterSkin.ps1
+      run: BuildTools\Build-RainmeterSkin.ps1 -TargetPath "bin\Release\x64\MqttClient.dll" -PlatformName "Any CPU" -Skin "Hello World" -SolutionDir ".\\"
       shell: powershell
 
     - name: dir bin
