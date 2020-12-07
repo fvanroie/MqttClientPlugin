@@ -59,7 +59,7 @@ jobs:
         Platform: ${{ matrix.platform }}
 
   upload:
-    - needs: build
+    needs: build
     
     - name: Upload output dlls
       uses: actions/upload-artifact@v2
@@ -68,7 +68,7 @@ jobs:
         path: bin\Release\*\*.dll
 
   release:
-    - needs: build
+    needs: build
       
     - name: Create release and upload firmware
       run: |
