@@ -1,0 +1,90 @@
+on:
+  release:
+    types: [created]
+
+name: Create Release
+
+jobs:
+
+  build:
+
+    strategy:
+      matrix:
+        configuration: [Release]
+#        platform: [x86, x64]
+
+    runs-on: windows-latest
+    env:
+      Solution_Name: MqttClientPlugin.sln
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    # Install the .NET Core workload
+    #- name: Install .NET Core
+    #  uses: actions/setup-dotnet@v1
+    #  with:
+    #    dotnet-version: 3.1.101
+
+    - name: Restore NuGet Packages
+      run: nuget restore $env:Solution_Name
+
+    #- name: Find MSBuild path
+    #  run: dir HKLM:\SOFTWARE\Microsoft\MSBuild\ToolsVersions\
+
+    # Add  MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
+    - name: Setup MSBuild.exe
+      uses: microsoft/setup-msbuild@v1.0.2
+
+    # Execute all unit tests in the solution
+    #- name: Execute unit tests
+    #  run: dotnet test
+
+    # Restore the application to populate the obj folder with RuntimeIdentifiers
+    - name: Restore the Plugin folder x86
+      run: msbuild $env:Solution_Name /t:Restore /p:Configuration=$env:Configuration /p:Platform=x86
+      env:
+        Configuration: ${{ matrix.configuration }}
+#        Platform: ${{ matrix.platform }} 
+
+    # Create the app package by building and packaging the Windows Application Packaging project
+    - name: Build the Plugin x86
+      run: msbuild $env:Solution_Name /t:Build /p:Configuration=$env:Configuration /p:Platform=x86
+      env:
+        Configuration: ${{ matrix.configuration }}
+#        Platform: ${{ matrix.platform }}
+
+    # Restore the application to populate the obj folder with RuntimeIdentifiers
+    - name: Restore the Plugin folder x64
+      run: msbuild $env:Solution_Name /t:Restore /p:Configuration=$env:Configuration /p:Platform=x64
+      env:
+        Configuration: ${{ matrix.configuration }}
+#        Platform: ${{ matrix.platform }} 
+
+    # Create the app package by building and packaging the Windows Application Packaging project
+    - name: Build the Plugin x64
+      run: msbuild $env:Solution_Name /t:Build /p:Configuration=$env:Configuration /p:Platform=x64
+      env:
+        Configuration: ${{ matrix.configuration }}
+#        Platform: ${{ matrix.platform }}
+
+    - name: Upload output dlls
+      uses: actions/upload-artifact@v2
+      with:
+        name: MqttClientPlugin
+        path: bin\Release\*\*.dll
+
+    - name: Create release and upload firmware
+      run: |
+        set -x
+        assets=()
+        for asset in bin\Release\*\*.dll; do
+          assets+=("-a" "$asset")
+        done
+        tag_name="${GITHUB_REF##*/}"
+        hub release edit "${assets[@]}" -m "$tag_name" "$tag_name"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
