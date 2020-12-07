@@ -72,9 +72,25 @@ jobs:
       env:
         Configuration: ${{ matrix.configuration }}
 #        Platform: ${{ matrix.platform }}
+
       
+    - name: Create RmSkin
+      run: BuildTools\Build-RainmeterSkin.ps1
+      shell: powershell
+
+    - name: dir bin
+      run: dir bin
+      shell: powershell
+  
     - name: Upload output dlls
       uses: actions/upload-artifact@v2
       with:
         name: MqttClientPlugin
         path: bin\Release\*\*.dll
+
+  
+    - name: Upload output rmskin
+      uses: actions/upload-artifact@v2
+      with:
+        name: MqttClientPlugin
+        path: bin\*.rmskin
