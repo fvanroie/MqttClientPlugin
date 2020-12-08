@@ -21,7 +21,7 @@ It is *not* advised to distribute this plugin in your own .rmskin files until a 
 The client parameters for connecting to the Mqtt broker service.
 
   Example:
-  ```
+  ```ini
   [myMqttClient]
   Type     = Plugin
   Plugin   = MqttClient
@@ -77,7 +77,7 @@ One or more Topic measures can be defined to subscribe to topics on the broker.
 The value of these measures can be used in your meters to display the payload of those topics.
 
   Example:
-  ```
+  ```ini
   [myFirstTopic]
   Type       = Plugin
   Plugin     = MqttClient
