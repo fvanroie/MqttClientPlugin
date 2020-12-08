@@ -46,7 +46,7 @@ An `.rmskin` package is not yet available, but will be released once the MqttPlu
 
 ## Usage
 
-See the examples folder for how to use the Measures. Also check out the Wiki page for more information about the functionality.
+See the examples folder for how to use the Measures. Also check out the [documentation](https://fvanroie.github.io/MqttClientPlugin).
 
 ## Contributing
 
