@@ -1,4 +1,4 @@
-﻿param
+param
 (
     [string]$Targetpath,
     [string]$SolutionDir
@@ -6,8 +6,8 @@
 
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 
-$SkinsDir = join-path -Path $SolutionDir -ChildPath "examples\Hello World"
-$SkinsRegex = [regex]::Escape($SkinsDir)
+$SkinsDir = Get-Item (join-path -Path $SolutionDir -ChildPath "examples")
+$SkinsRegex = [regex]::Escape($SkinsDir.Fullname)
 
 $version = ''
 $skinfile = $SolutionDir + "bin\MqttClient_$version.rmskin"
@@ -29,10 +29,14 @@ $entries = @()
 # Add BMP
 
 "$SkinsDir"
+"$SkinsRegex"
 # Add Skins
 $entries += Get-ChildItem -File ("$SkinsDir") -Recurse |
 Sort-Object DirectoryName, FullName |
-% { [System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile($rmskin, $_.FullName, $($_.FullName -replace $SkinsRegex, "Skins"), 'optimal') }
+% {
+    $shortName = $_.FullName -replace $SkinsRegex,"Skins\MqttClient"
+    [System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile($rmskin, $_.FullName, $shortName, 'optimal')
+}
 
 # Add Plugins
 $dllfile = $Targetpath -replace "x64","x86"
