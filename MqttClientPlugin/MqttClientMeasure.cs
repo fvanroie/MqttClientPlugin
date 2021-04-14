@@ -138,7 +138,7 @@ namespace NetwiZe.MqttClientPlugin
 
             /* Mqtt Server Bangs */
             OnConnectBangs = SplitBangs(api.ReadString("OnConnect", ""));
-            OnDisconnectBangs = SplitBangs(api.ReadString("OnConnect", ""));
+            OnDisconnectBangs = SplitBangs(api.ReadString("OnDisconnect", ""));
             OnReloadBangs = SplitBangs(api.ReadString("OnReload", ""));
             OnMessageBangs = SplitBangs(api.ReadString("OnMessage", ""));
 
