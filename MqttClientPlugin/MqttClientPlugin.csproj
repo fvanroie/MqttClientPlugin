@@ -140,9 +140,7 @@
   </Target>
   -->
   <PropertyGroup>
-    <PostBuildEvent>taskkill /f /fi "imagename eq Rainmeter.exe"
-"$(SolutionDir)API\DllExporter.exe" "$(ConfigurationName)" "$(PlatformName)" "$(TargetDir)\" "$(TargetFileName)"
-xcopy  "$(TargetDir)$(TargetFileName)" "%25appdata%25\Rainmeter\Plugins" /Y</PostBuildEvent>
+    <PostBuildEvent>"$(SolutionDir)API\DllExporter.exe" "$(ConfigurationName)" "$(PlatformName)" "$(TargetDir)\" "$(TargetFileName)"</PostBuildEvent>
   </PropertyGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
