@@ -17,8 +17,8 @@ This skin displays the state of your IoT devices. The following states are inclu
 
 
 ## Installation
-1) Build the plugin or download it as a [binary](https://github.com/iovidius/MqttClientPlugin/blob/master/examples/iot-dash/MqttClient.dll)
-2) Install the plugin (copy to **%apdpdata%/Rainmeter/plugins**)
-3) Copy the **iot-dash** folder into your **Skins** folder
+1) Build the plugin or download it as a [binary](https://github.com/fvanroie/MqttClientPlugin/releases).
+2) Install the plugin (copy to **%apdpdata%/Rainmeter/plugins**).
+3) Copy the **iot-dash** folder into your **Skins** folder.
 4) Edit **Connections.ini** to change your MQTT credentials and add your own devices  I wrote a [small blogpost](https://joszuijderwijk.nl/iot-dash/) on how the code works.
 5) Enjoy!
