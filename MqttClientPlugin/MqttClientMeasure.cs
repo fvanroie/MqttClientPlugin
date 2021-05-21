@@ -367,13 +367,20 @@ namespace NetwiZe.MqttClientPlugin
             }
         }
 
-        private async Task PublishAsync(String topic, String value)
+        private async Task PublishAsync(String topic, String value, byte qos = 0, bool flag = false)
         {
+
+            var q = MqttQualityOfServiceLevel.AtMostOnce;
+            if (qos == 1)
+                q = MqttQualityOfServiceLevel.AtLeastOnce;
+            else if (qos == 2)
+                q = MqttQualityOfServiceLevel.ExactlyOnce;
+
             var message = new MqttApplicationMessageBuilder()
                 .WithTopic(topic)
                 .WithPayload(value)
-                .WithExactlyOnceQoS()
-                // .WithRetainFlag()
+                .WithQualityOfServiceLevel(q)
+                .WithRetainFlag(flag)
                 .Build();
             await MqttClient.PublishAsync(message);
         }
