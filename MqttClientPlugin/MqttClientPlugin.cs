@@ -86,6 +86,29 @@ namespace NetwiZe.MqttClientPlugin
                 //measure.buffer = Marshal.StringToHGlobalUni("Pub");
             }
             //If we are given more arguments
+            else if (argc == 3 || argc == 4)
+            {
+
+                // try convert the string to a byte
+                try
+                {
+                    var qos = Convert.ToByte(argv[2]);
+                    
+                    if (argc == 3)
+                        measure.Publish(argv[0], argv[1], qos);
+                    else
+                    {
+                        bool retained = argv[3].ToLower() == "true" || argv[3] == "1";
+                        measure.Publish(argv[0], argv[1], qos, retained);
+                    }
+                }
+                catch
+                {
+                    measure.Publish(argv[0], argv[1]);
+                }
+
+
+            }
             else
             {
                 measure.Publish("atopic", "avalue");
