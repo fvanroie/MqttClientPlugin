@@ -1,6 +1,6 @@
 # MqttPlugin for Rainmeter
 
-[![GitHub release](https://img.shields.io/github/release/fvanroie/MqttClientPlugin.svg)](https://github.com/fvanroie/MqttClientPlugin/releases)
+[![GitHub release](https://img.shields.io/github/v/release/fvanroie/MqttClientPlugin?include_prereleases)](https://github.com/fvanroie/MqttClientPlugin/releases)
 [![GitHub](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/fvanroie/MqttClientPlugin/blob/master/LICENSE)
 [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](#Contributing)
 [![GitHub issues](https://img.shields.io/github/issues/fvanroie/MqttClientPlugin.svg)](http://github.com/fvanroie/MqttClientPlugin/issues)
@@ -57,7 +57,7 @@ You are welcome to contribute to the development of this plugin:
 
 ## Support
 
-For support using MqttClient Plugin, please join the [#hasp-lvgl channel][6] on Discord.
+For support using MqttClient Plugin, please join the [#openHASP][6] on Discord.
 
 [1]:https://github.com/rainmeter/rainmeter-plugin-sdk
 [2]:https://github.com/eclipse/paho.mqtt.m2mqtt
