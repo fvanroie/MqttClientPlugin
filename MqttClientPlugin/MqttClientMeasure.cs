@@ -459,7 +459,7 @@ namespace NetwiZe.MqttClientPlugin
         internal override void Publish(String topic, String value, byte qos = 0, bool retain = false)
         {
             //if (MqttClient.IsConnected) {
-            Log(API.LogType.Notice, "Publish message " + topic + " = " + value);
+            Log(API.LogType.Notice, "Publish message " + topic + " = " + value + " (retained: " + retain.ToString() + ")");
             try
             {
                 PublishAsync(topic, value, qos, retain).Wait();
