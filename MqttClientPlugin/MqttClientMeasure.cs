@@ -462,7 +462,7 @@ namespace NetwiZe.MqttClientPlugin
             Log(API.LogType.Notice, "Publish message " + topic + " = " + value);
             try
             {
-                PublishAsync(topic, value).Wait();
+                PublishAsync(topic, value, qos, retain).Wait();
             }
             catch (AggregateException e)
             {
