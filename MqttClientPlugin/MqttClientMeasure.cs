@@ -490,7 +490,7 @@ namespace NetwiZe.MqttClientPlugin
                 args = args.Substring(8).Trim(')');
                 string[] arglist = args.Split(',');
                 if (arglist.Length == 2)
-                    Publish(Topic, args, 0, false);
+                    Publish(arglist[0], arglist[1], 0, false);
                 if (arglist.Length == 3 || arglist.Length == 4)
                 {
                     try
