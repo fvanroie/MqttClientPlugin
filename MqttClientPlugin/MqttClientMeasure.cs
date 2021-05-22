@@ -459,7 +459,7 @@ namespace NetwiZe.MqttClientPlugin
         internal override void Publish(String topic, String value, byte qos = 0, bool retain = false)
         {
             //if (MqttClient.IsConnected) {
-            Log(API.LogType.Notice, "Publish message " + topic + " = " + value + " (retained: " + retain.ToString() + ")");
+            Log(API.LogType.Notice, "Publish message " + topic + " = " + value + "," + qos.ToString() + "," + retain.ToString() + ")");
             try
             {
                 PublishAsync(topic, value, qos, retain).Wait();
@@ -483,7 +483,36 @@ namespace NetwiZe.MqttClientPlugin
 
         internal override void ExecuteBang(String args)
         {
-            Publish(Topic, args, 0, false);
+            Log(API.LogType.Notice, "Execute Bang: " + args);
+            if (args.ToLower().StartsWith("publish("))
+            {
+                // format: publish(a,b,c,d)
+                args = args.Substring(8).Trim(')');
+                string[] arglist = args.Split(',');
+                if (arglist.Length == 2)
+                    Publish(Topic, args, 0, false);
+                if (arglist.Length == 3 || arglist.Length == 4)
+                {
+                    try
+                    {
+                        var qos = Convert.ToByte(arglist[2]);
+                        if (arglist.Length == 3)
+                        {
+                            Publish(arglist[0], arglist[1], qos);
+                        }
+                        else
+                        {
+                            bool retained = arglist[3].ToLower() == "true" || arglist[3] == "1";
+                            Publish(arglist[0], arglist[1], qos, retained);
+                        }
+                    }
+                    catch
+                    {
+                        Publish(arglist[0], arglist[1], 0, false);
+                    }
+                }
+            }
+            
         }
 
         internal override double Update()
