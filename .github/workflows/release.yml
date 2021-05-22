@@ -73,20 +73,20 @@ jobs:
         run: BuildTools\Build-RainmeterSkin.ps1 -TargetPath "bin\Release\x64\MqttClient.dll" -PlatformName "Any CPU" -Skin "Hello World" -SolutionDir ".\\"
         shell: powershell
 
+      - name: dir bin
+        run: dir bin
+        shell: powershell
+
       - name: Upload output dlls
         uses: actions/upload-artifact@v2
         with:
           name: MqttClientPlugin
           path: bin\Release\*\*.dll
 
-      - name: Create release and upload skin
-        run: |
-          set -x
-          assets=()
-          for asset in bin\*.rmskin; do
-            assets+=("-a" "$asset")
-          done
-          tag_name="${GITHUB_REF##*/}"
-          hub release edit "${assets[@]}" -m "$tag_name" "$tag_name"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload skin to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: bin\MqttClient_.rmskin
+          asset_name: MqttClient_.rmskin
+          tag: ${{ github.ref }}
