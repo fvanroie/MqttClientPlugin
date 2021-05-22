@@ -87,6 +87,7 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: bin\MqttClient_.rmskin
-          asset_name: MqttClient_.rmskin
+          file: bin\MqttClient_*.rmskin
           tag: ${{ github.ref }}
+          overwrite: true
+          file_glob: true

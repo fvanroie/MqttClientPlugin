@@ -9,11 +9,11 @@ Add-Type -AssemblyName System.IO.Compression.FileSystem
 $SkinsDir = Get-Item (join-path -Path $SolutionDir -ChildPath "examples")
 $SkinsRegex = [regex]::Escape($SkinsDir.Fullname)
 
-$version = ''
+$version = '0.2.5.0522'
 $skinfile = $SolutionDir + "bin\MqttClient_$version.rmskin"
 
 #Create RMSKIN.ini
-Set-Content -Path "$SolutionDir\bin\RMSKIN.ini" -Value "[rmskin]`nName=MqttPlugin`nAuthor=NetwiZe.be`nVersion=0.2.5.0522`nMinimumRainmeter=4.3.1.3321`nMinimumWindows=10.0"
+Set-Content -Path "$SolutionDir\bin\RMSKIN.ini" -Value "[rmskin]`nName=MqttPlugin`nAuthor=NetwiZe.be`nVersion=$version`nMinimumRainmeter=4.3.1.3321`nMinimumWindows=10.0"
 
 # Delete Rmskin file if it exists
 if (Test-Path $skinfile) { Remove-Item $skinfile }
@@ -34,17 +34,17 @@ $entries = @()
 $entries += Get-ChildItem -File ("$SkinsDir") -Recurse |
 Sort-Object DirectoryName, FullName |
 % {
-    $shortName = $_.FullName -replace $SkinsRegex,"Skins\MqttClient"
+    $shortName = $_.FullName -replace $SkinsRegex, "Skins\MqttClient"
     [System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile($rmskin, $_.FullName, $shortName, 'optimal')
 }
 
 # Add Plugins
-$dllfile = $Targetpath -replace "x64","x86"
+$dllfile = $Targetpath -replace "x64", "x86"
 if (Test-Path $dllfile) {
     $entries += [System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile($rmskin, $dllfile, 'Plugins\32bit\MqttClient.dll', 'optimal')
 }
 
-$dllfile = $Targetpath -replace "x86","x64"
+$dllfile = $Targetpath -replace "x86", "x64"
 if (Test-Path $dllfile) {
     $entries += [System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile($rmskin, $dllfile, 'Plugins\64bit\MqttClient.dll', 'optimal')
 }

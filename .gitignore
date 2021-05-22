@@ -9,6 +9,7 @@ M2Mqtt/.vs/
 MqttPlugin/.vs/
 [Rr]eleases/
 BuildTools/
+!BuildTools/Build-RainmeterSkin.ps1
 .editorconfig
 
 # User-specific files
