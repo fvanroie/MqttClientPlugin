@@ -13,7 +13,7 @@ $version = ''
 $skinfile = $SolutionDir + "bin\MqttClient_$version.rmskin"
 
 #Create RMSKIN.ini
-Set-Content -Path "$SolutionDir\bin\RMSKIN.ini" -Value "[rmskin]`nName=MqttPlugin`nAuthor=NetwiZe.be`nVersion=0.1.0.1014`nMinimumRainmeter=4.3.1.3321`nMinimumWindows=10.0"
+Set-Content -Path "$SolutionDir\bin\RMSKIN.ini" -Value "[rmskin]`nName=MqttPlugin`nAuthor=NetwiZe.be`nVersion=0.2.5.0522`nMinimumRainmeter=4.3.1.3321`nMinimumWindows=10.0"
 
 # Delete Rmskin file if it exists
 if (Test-Path $skinfile) { Remove-Item $skinfile }
