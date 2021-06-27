@@ -42,7 +42,7 @@ Optionally, also copy the examples folder to Documents\Rainmeter\Skins.
 
 > **_NOTE:_** If you previously installed v0.0.1 or v0.0.2, you can **remove** `M2Mqtt.dll` from your Rainmeter directory and **remove** `MqttPlugin.dll` from your Plugins directory. These aren't needed anymore.
 
-An `.rmskin` package is not yet available, but will be released once the MqttPlugin is ready for beta testing.
+An `.rmskin` package is also available on the [releases](https://github.com/fvanroie/MqttClientPlugin/releases) page.
 
 ## Usage
 
